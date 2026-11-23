@@ -11,7 +11,7 @@ license = { text = "Apache-2.0" }
 authors = [{ name = "ZNTOff" }]
 dependencies = [
     "anthropic>=0.40",
-    "httpx>=0.27,<1",  # OpenAI-compatible providers (OpenAI, Gemini, OpenRouter, Ollama...)
+    "httpx>=0.28.1,<1",  # OpenAI-compatible providers (OpenAI, Gemini, OpenRouter, Ollama...)
     "fastapi>=0.110",
     "faster-whisper>=1.0",
     "av>=14,<16",  # faster-whisper 1.2 calls av.open(metadata_errors=...), which av 16+ no longer accepts
@@ -32,7 +32,7 @@ Issues = "https://github.com/Zntoff/kairos-studio/issues"
 
 [project.optional-dependencies]
 postgres = ["psycopg[binary]>=3.1"]
-dev = ["pytest>=8", "httpx>=0.27"]
+dev = ["pytest>=8", "httpx>=0.28.1"]
 
 [project.scripts]
 clipper = "clipper.cli:app"
