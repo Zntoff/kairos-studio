@@ -14,7 +14,7 @@ dependencies = [
     "httpx>=0.27,<1",  # OpenAI-compatible providers (OpenAI, Gemini, OpenRouter, Ollama...)
     "fastapi>=0.110",
     "faster-whisper>=1.0",
-    "av>=14,<16",  # faster-whisper 1.2 calls av.open(metadata_errors=...), which av 16+ no longer accepts
+    "av>=18.1.0,<19",  # faster-whisper 1.2 calls av.open(metadata_errors=...), which av 16+ no longer accepts
     "numpy>=1.26",
     "pillow>=10",
     "pydantic>=2.6",
