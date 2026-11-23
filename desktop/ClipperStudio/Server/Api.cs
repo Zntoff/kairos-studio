@@ -101,7 +101,9 @@ public partial class Api
         Secure(app);
         MapDeletion(app);
         app.MapGet("/healthz",()=>Results.Ok(new {ok=true}));
-        app.UseStaticFiles(new StaticFileOptions { FileProvider = new PhysicalFileProvider(Paths.Web), RequestPath = "/static" });
+        var staticTypes = new Microsoft.AspNetCore.StaticFiles.FileExtensionContentTypeProvider();
+        staticTypes.Mappings[".vtt"] = "text/vtt";
+        app.UseStaticFiles(new StaticFileOptions { FileProvider = new PhysicalFileProvider(Paths.Web), RequestPath = "/static", ContentTypeProvider = staticTypes });
         app.MapGet("/", () => Results.Text(File.ReadAllText(Path.Combine(Paths.Web, "index.html")).Replace("{{v}}", version + "-" + File.GetLastWriteTimeUtc(Path.Combine(Paths.Web, "editor.js")).Ticks).Replace("{{csrf}}", _csrf), "text/html"));
 
         app.MapGet("/api/config", () =>
@@ -139,6 +141,7 @@ public partial class Api
         });
         MapSetup(app);
         MapProjects(app);
+        MapVideoProjects(app);
         MapResources(app);
 
         // ---------- AI provider connection, usage and tools ----------
@@ -331,7 +334,7 @@ public partial class Api
         app.MapGet("/api/clips/{id}/waveform", (string id, double a, double b) => Guard(() =>
         {
             var (_, src) = _editor.Load(id);
-            a = Math.Max(0, a); b = Math.Min(J.D(src["duration"]), Math.Min(b, a + 600));
+            a = Math.Max(0, a); b = Math.Min(J.D(src["duration"]), Math.Min(b, a + EditorSvc.MaxDur));
             return Json(_editor.Waveform(src, a, b));
         }));
         app.MapPost("/api/clips/{id}/proxy", (string id, double a, double b) => Guard(() =>

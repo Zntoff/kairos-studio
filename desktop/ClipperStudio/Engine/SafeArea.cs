@@ -7,14 +7,41 @@ public record TextPlacement(int X, int Y, int FontSize, double Em, List<string> 
 /// <summary>Conservative shared Shorts/Reels work area, not a universal platform pixel specification.</summary>
 public static class SafeArea
 {
-    public const int Left = 180, RightMargin = 180, Top = 300, BottomMargin = 680;
-    public const int Right = Ass.W - RightMargin, Bottom = Ass.H - BottomMargin;
-    public const int Width = Right - Left, Height = Bottom - Top, CenterX = (Left + Right) / 2;
-    public const string Profile = "shorts_reels_centered_v2";
+    static readonly AsyncLocal<JsonObject?> Current = new();
+    public static int Left => (int)J.D(Current.Value?["left"], 100);
+    public static int RightMargin => (int)J.D(Current.Value?["right"], 100);
+    public static int Top => (int)J.D(Current.Value?["top"], 240);
+    public static int BottomMargin => (int)J.D(Current.Value?["bottom"], 240);
+    public static int Right => Ass.W - RightMargin;
+    public static int Bottom => Ass.H - BottomMargin;
+    public static int Width => Right - Left;
+    public static int Height => Bottom - Top;
+    public static int CenterX => (Left + Right) / 2;
+    public const string Profile = "shorts_reels_centered_v3";
+    public static JsonObject Clean(JsonNode? raw)
+    {
+        if (raw?["profile"] != null && J.S(raw["profile"]) != Profile && J.B(raw["locked"], true)) raw = null;
+        var result = new JsonObject { ["profile"] = Profile, ["enforced"] = true,
+            ["locked"] = J.B(raw?["locked"], true) };
+        foreach (var (key, fallback, max) in new[] { ("left",100,300), ("right",100,300), ("top",240,700), ("bottom",240,700) })
+            result[key] = (int)J.Num(raw?[key], fallback, 0, max);
+        return result;
+    }
+    sealed class Context(JsonObject? previous) : IDisposable
+    {
+        public void Dispose() => Current.Value = previous;
+    }
+    // Render jobs can run concurrently; never share a mutable global rectangle.
+    public static IDisposable Use(JsonNode edl)
+    {
+        var scope = new Context(Current.Value);
+        Current.Value = Clean(edl["safe_area"]);
+        return scope;
+    }
     public static string Clip => $"\\clip({Left},{Top},{Right},{Bottom})";
     public static JsonObject Json() => new()
     {
-        ["profile"] = Profile, ["enforced"] = true, ["left"] = Left, ["right"] = RightMargin,
+        ["profile"] = Profile, ["enforced"] = true, ["locked"] = J.B(Current.Value?["locked"], true), ["left"] = Left, ["right"] = RightMargin,
         ["top"] = Top, ["bottom"] = BottomMargin, ["side"] = Left,
         ["width"] = Width, ["height"] = Height, ["center_x"] = CenterX,
         ["note"] = "Perfil común conservador para Shorts y Reels. La interfaz puede variar según dispositivo y publicación.",

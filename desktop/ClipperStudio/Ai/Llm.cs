@@ -18,7 +18,7 @@ public class ContractException(string message) : Exception(message);
 
 public record StepMeta(int Attempts, string Model, long Input, long Output, double Seconds);
 
-public class LlmClient(Engine.AiSettings ai, ProviderConf? snapshot = null)
+public partial class LlmClient(Engine.AiSettings ai, ProviderConf? snapshot = null)
 {
     readonly ProviderConf config = snapshot ?? ai.Conf(); // Freeze provider, credentials and models for this execution.
     public string? Missing => AiSettings.Missing(config);

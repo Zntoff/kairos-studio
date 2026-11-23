@@ -16,6 +16,7 @@ public partial class Api
             p["source_count"] = _store.List("sources", id).Count;
             p["job_count"] = _store.List("jobs", id).Count;
             p["clip_count"] = _store.List("clips", id).Count;
+            p["video_count"] = _store.List("video_projects", id).Count;
             p["resource_count"] = _store.List("resources", id).Count;
             return (JsonNode)p;
         }))));

@@ -1,8 +1,7 @@
-# Spoiler terms. One entry per line; case is ignored.
-# A match does NOT reject the clip: it sends it to human review.
-# Add the terms that reveal the story of the content you clip: endings, twists,
-# key characters of series, movies or games. This starter list is generic.
-# Spanish terms are included on purpose: they match Spanish transcripts.
+# Lista de términos de spoiler. Una entrada por línea; se ignoran mayúsculas.
+# Un acierto NO rechaza el clip: lo manda a revisión humana.
+# Añade aquí los términos que revelen la historia del contenido que recortas: finales,
+# giros, personajes clave de series, películas o juegos. Esta lista inicial es genérica.
 ending
 final mission
 last mission

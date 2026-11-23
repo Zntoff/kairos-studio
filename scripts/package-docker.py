@@ -10,8 +10,8 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 def package(destination: Path, version: str):
-    if not re.fullmatch(r"\d+\.\d+\.\d+", version):
-        raise ValueError("Expected a stable semantic version")
+    if not re.fullmatch(r"\d+\.\d+\.\d+(?:-beta\.[1-9]\d*)?", version):
+        raise ValueError("Expected a stable or beta semantic version")
     destination.mkdir(parents=True, exist_ok=True)
     output = destination / f"KairosStudio-{version}-Docker.zip"
     prefix = f"KairosStudio-{version}-Docker/"
@@ -23,7 +23,7 @@ def package(destination: Path, version: str):
             if source.is_symlink():
                 raise ValueError(f"Symlink forbidden in package: {source.name}")
             files[source.relative_to(ROOT).as_posix()] = source.read_bytes()
-    for name in ("Dockerfile", "pyproject.toml", "LICENSE", "NOTICE", ".env.example"):
+    for name in ("Dockerfile", ".dockerignore", "pyproject.toml", "LICENSE", "NOTICE", ".env.example"):
         files[name] = (ROOT / name).read_bytes()
     for source in (ROOT / "distribution/docker").iterdir():
         if source.is_file():

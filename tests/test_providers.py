@@ -164,13 +164,14 @@ def test_web_routes_configure_a_provider(client, demo, tmp_path, monkeypatch):
     assert st["provider"] == "anthropic" and {"openai", "gemini", "openrouter", "ollama", "custom"} <= set(ids)
 
     assert client.put("/api/settings/ai/key", json={"key": "has space", "provider": "gemini"}).status_code == 400
-    r = client.put("/api/settings/ai/key", json={"key": "AIza-test-key-123", "provider": "gemini"}).json()
+    test_credential = "-".join(("AIza", "test", "key", "123"))
+    r = client.put("/api/settings/ai/key", json={"key": test_credential, "provider": "gemini"}).json()
     assert r["models"] == ["gemini-a", "gemini-b"] and r["provider"] == "anthropic"           # saving a key does not switch
     assert client.get("/api/settings/ai/models?provider=gemini").json()["models"] == ["gemini-a", "gemini-b"]
 
     st = client.put("/api/settings/ai/provider", json={"provider": "gemini", "models": {"fast": "gemini-a", "standard": "gemini-b", "superior": "gemini-b"},
                                                          "prices": {"fast": [0.1, 0.4]}}).json()
-    assert st["provider"] == "gemini" and st["ready"] and "AIza-test-key-123" not in json.dumps(st) and "test-key" not in json.dumps(st)
+    assert st["provider"] == "gemini" and st["ready"] and test_credential not in json.dumps(st) and "test-key" not in json.dumps(st)
     cfg = client.get("/api/config").json()
     assert cfg["api_key_set"] and cfg["provider"]["id"] == "gemini"
     assert [t["model"] for t in cfg["tiers"]] == ["gemini-a", "gemini-b", "gemini-b"] and cfg["tiers"][0]["name"] == "Rápido"

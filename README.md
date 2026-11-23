@@ -7,11 +7,13 @@
 
 <!-- downloads:start -->
 <p align="center">
-  <a href="https://github.com/Zntoff/kairos-studio/releases/download/v0.10.0/KairosStudio-0.10.0-Setup-win-x64.exe"><b>Download Windows installer (EXE)</b></a> ·
-  <a href="https://github.com/Zntoff/kairos-studio/releases/download/v0.10.0/KairosStudio-0.10.0-Portable-win-x64.zip"><b>Download portable ZIP</b></a> ·
-  <a href="https://github.com/Zntoff/kairos-studio/releases/download/v0.10.0/KairosStudio-0.10.0-Docker.zip"><b>Download Docker bundle</b></a>
+  <a href="https://github.com/Zntoff/kairos-studio/releases/download/v0.12.0-beta.11/KairosStudio-0.12.0-beta.11-Setup-win-x64.exe"><b>Download Windows installer (EXE)</b></a> ·
+  <a href="https://github.com/Zntoff/kairos-studio/releases/download/v0.12.0-beta.11/KairosStudio-0.12.0-beta.11-Portable-win-x64.zip"><b>Download portable ZIP</b></a> ·
+  <a href="https://github.com/Zntoff/kairos-studio/releases/download/v0.12.0-beta.11/KairosStudio-0.12.0-beta.11-Docker.zip"><b>Download Docker bundle</b></a>
 </p>
 <!-- downloads:end -->
+
+The downloads above are for the current beta. [Stable releases](https://github.com/Zntoff/kairos-studio/releases/latest) are also available.
 
 <p align="center">
   <a href="https://github.com/Zntoff/kairos-studio/releases/latest"><img src="https://img.shields.io/github/v/release/Zntoff/kairos-studio?style=flat-square&color=0A0A0A&label=release" alt="Latest release"></a>
@@ -32,6 +34,8 @@
 <br>
 
 ## What it does
+
+Open **Home > Guided demo** to try the Shorts workflow with a sample project and download a vertical MP4.
 
 Kairos Studio turns streams, podcasts, interviews, classes, talks, tutorials, vlogs and gameplay into vertical
 shorts for **YouTube Shorts, TikTok and Instagram Reels**. You add a video (a file, or a YouTube, Twitch or Kick

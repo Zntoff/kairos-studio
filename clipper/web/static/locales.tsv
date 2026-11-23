@@ -1,4 +1,90 @@
 Inicio	Home	Início	Accueil	Start
+Demo guiada	Guided demo	Demonstração guiada	Démo guidée	Geführte Demo
+Herramientas del editor	Editor tools	Ferramentas do editor	Outils de montage	Editor-Werkzeuge
+Chat IA	AI chat	Chat IA	Chat IA	KI-Chat
+Chat de edición con IA	AI editing chat	Chat de edição com IA	Chat de montage IA	KI-Schnittchat
+Enviar	Send	Enviar	Envoyer	Senden
+Escribe una instrucción para editar el video…	Write an instruction to edit the video…	Escreva uma instrução para editar o vídeo…	Écrivez une instruction pour monter la vidéo…	Schreibe eine Anweisung zum Bearbeiten des Videos…
+Imán	Snapping	Encaixe	Magnétisme	Einrasten
+La normalización se aplica en el render.	Normalization is applied on export.	A normalização é aplicada na exportação.	La normalisation est appliquée à l’exportation.	Die Normalisierung wird beim Export angewendet.
+Selecciona la región de la cara en el lienzo compuesto.	Select the face region in the composed canvas.	Selecione a região do rosto na tela composta.	Sélectionnez la zone du visage dans le montage.	Wähle den Gesichtsbereich auf der zusammengesetzten Leinwand.
+Selecciona un recurso en la línea de tiempo para ajustar su encuadre.	Select a timeline asset to adjust its framing.	Selecione um recurso na linha do tempo para ajustar o enquadramento.	Sélectionnez un média dans la chronologie pour ajuster son cadrage.	Wähle ein Medium in der Zeitleiste aus, um den Bildausschnitt anzupassen.
+Un fotograma atrás	One frame backward	Um quadro para trás	Une image en arrière	Ein Bild zurück
+Un fotograma adelante	One frame forward	Um quadro à frente	Une image en avant	Ein Bild vorwärts
+Tú	You	Você	Vous	Du
+Montajes de video	Video compositions	Montagens de vídeo	Montages vidéo	Videoprojekte
+Montajes	Compositions	Montagens	Montages	Videoprojekte
+Crear video	Create video	Criar vídeo	Créer une vidéo	Video erstellen
+Crea y edita videos completos dentro de este proyecto.	Create and edit complete videos inside this project.	Crie e edite vídeos completos neste projeto.	Créez et montez des vidéos complètes dans ce projet.	Erstelle und bearbeite vollständige Videos in diesem Projekt.
+Crea tu primer montaje de video.	Create your first video composition.	Crie sua primeira montagem de vídeo.	Créez votre premier montage vidéo.	Erstelle dein erstes Videoprojekt.
+Abre un editor vacío con el formato que elijas.	Open an empty editor in your chosen format.	Abra um editor vazio no formato escolhido.	Ouvrez un éditeur vide au format de votre choix.	Öffne einen leeren Editor im gewünschten Format.
+Abrir editor	Open editor	Abrir editor	Ouvrir l’éditeur	Editor öffnen
+Eliminar montaje	Delete composition	Excluir montagem	Supprimer le montage	Videoprojekt löschen
+El montaje se moverá a la papelera recuperable.	The composition will be moved to recoverable trash.	A montagem será movida para a lixeira recuperável.	Le montage sera placé dans la corbeille récupérable.	Das Videoprojekt wird in den wiederherstellbaren Papierkorb verschoben.
+Empieza con un editor vacío. Puedes importar contenido después.	Start with an empty editor. You can import media later.	Comece com um editor vazio. Você pode importar conteúdo depois.	Commencez avec un éditeur vide. Vous pourrez importer des médias ensuite.	Beginne mit einem leeren Editor. Medien kannst du später importieren.
+Nombre del video	Video name	Nome do vídeo	Nom de la vidéo	Videoname
+Formato de archivo	File format	Formato de arquivo	Format du fichier	Dateiformat
+Proporción	Aspect ratio	Proporção	Proportions	Seitenverhältnis
+Calidad	Quality	Qualidade	Qualité	Qualität
+Borrador	Draft	Rascunho	Brouillon	Entwurf
+Alta	High	Alta	Élevée	Hoch
+La creación del montaje y la edición manual no usan la API.	Creating a composition and editing manually do not use the API.	Criar a montagem e editar manualmente não usam a API.	La création du montage et le montage manuel n’utilisent pas l’API.	Das Erstellen und manuelle Bearbeiten nutzt keine API.
+Crear y abrir editor	Create and open editor	Criar e abrir editor	Créer et ouvrir l’éditeur	Erstellen und Editor öffnen
+Exportar video	Export video	Exportar vídeo	Exporter la vidéo	Video exportieren
+Añade un recurso al cursor para empezar.	Add an asset at the playhead to begin.	Adicione um recurso no cursor para começar.	Ajoutez un média au curseur pour commencer.	Füge zum Start ein Medium am Abspielkopf ein.
+Asistente de edición con IA	AI editing assistant	Assistente de edição com IA	Assistant de montage IA	KI-Schnittassistent
+Asistente de IA	AI assistant	Assistente de IA	Assistant IA	KI-Assistent
+Tu video empieza aquí	Your video starts here	Seu vídeo começa aqui	Votre vidéo commence ici	Dein Video beginnt hier
+Reproducir o pausar	Play or pause	Reproduzir ou pausar	Lire ou mettre en pause	Wiedergabe oder Pause
+Posición del cursor	Playhead position	Posição do cursor	Position du curseur	Abspielposition
+Línea de tiempo	Timeline	Linha do tempo	Chronologie	Zeitleiste
+Duración (s)	Duration (s)	Duração (s)	Durée (s)	Dauer (s)
+Cada solicitud usa tu API y puede generar cargos, incluso si descartas la propuesta. Los reintentos del proveedor también consumen tokens.	Each request uses your API and may incur charges, even if you discard the proposal. Provider retries also consume tokens.	Cada solicitação usa sua API e pode gerar cobranças, mesmo ao descartar a proposta. Novas tentativas do provedor também consomem tokens.	Chaque demande utilise votre API et peut être facturée, même si vous rejetez la proposition. Les nouvelles tentatives consomment aussi des jetons.	Jede Anfrage nutzt deine API und kann Kosten verursachen, auch wenn du den Vorschlag verwirfst. Wiederholte Versuche verbrauchen ebenfalls Tokens.
+Instrucción	Instruction	Instrução	Instruction	Anweisung
+Recorta el inicio o baja el volumen del recurso seleccionado…	Trim the beginning or lower the selected asset's volume…	Recorte o início ou diminua o volume do recurso selecionado…	Coupez le début ou baissez le volume du média sélectionné…	Kürze den Anfang oder senke die Lautstärke des ausgewählten Mediums…
+Generar propuesta con API	Generate proposal using API	Gerar proposta usando API	Générer une proposition via l’API	Vorschlag über API erstellen
+Aplicar cambios	Apply changes	Aplicar alterações	Appliquer les modifications	Änderungen anwenden
+Selecciona un recurso en la línea de tiempo.	Select an asset on the timeline.	Selecione um recurso na linha do tempo.	Sélectionnez un média dans la chronologie.	Wähle ein Medium auf der Zeitleiste aus.
+Inicio en el montaje (s)	Start on timeline (s)	Início na montagem (s)	Début dans le montage (s)	Start auf der Zeitleiste (s)
+Completo	Fit entire asset	Recurso completo	Média entier	Gesamtes Medium
+Rellenar y recortar	Fill and crop	Preencher e recortar	Remplir et recadrer	Füllen und zuschneiden
+Volumen: 1 = 100 %, 0 = silencio.	Volume: 1 = 100%, 0 = muted.	Volume: 1 = 100%, 0 = silêncio.	Volume : 1 = 100 %, 0 = muet.	Lautstärke: 1 = 100 %, 0 = stumm.
+Video exportado	Video exported	Vídeo exportado	Vidéo exportée	Video exportiert
+cambios	changes	alterações	modifications	Änderungen
+La duración debe incluir todos los recursos.	The duration must include every asset.	A duração deve incluir todos os recursos.	La durée doit inclure tous les médias.	Die Dauer muss alle Medien umfassen.
+Valor fuera de rango.	Value out of range.	Valor fora do intervalo.	Valeur hors limites.	Wert außerhalb des Bereichs.
+Sitúa el cursor dentro del recurso.	Place the playhead inside the asset.	Posicione o cursor dentro do recurso.	Placez le curseur dans le média.	Positioniere den Abspielkopf im Medium.
+Consultando la API…	Calling the API…	Consultando a API…	Appel de l’API…	API wird aufgerufen…
+El montaje cambió durante la consulta. La propuesta se descartó; el consumo de API queda registrado.	The composition changed during the request. The proposal was discarded; API usage remains recorded.	A montagem mudou durante a consulta. A proposta foi descartada; o uso da API continua registrado.	Le montage a changé pendant la demande. La proposition a été rejetée ; l’utilisation de l’API reste enregistrée.	Das Videoprojekt wurde während der Anfrage geändert. Der Vorschlag wurde verworfen; die API-Nutzung bleibt erfasst.
+La propuesta ya no corresponde al montaje actual.	The proposal no longer matches the current composition.	A proposta não corresponde mais à montagem atual.	La proposition ne correspond plus au montage actuel.	Der Vorschlag entspricht nicht mehr dem aktuellen Videoprojekt.
+Añade recursos antes de exportar.	Add media before exporting.	Adicione recursos antes de exportar.	Ajoutez des médias avant d’exporter.	Füge vor dem Export Medien hinzu.
+Exportación en cola	Export queued	Exportação na fila	Exportation en attente	Export in Warteschlange
+Exportando…	Exporting…	Exportando…	Exportation…	Wird exportiert…
+Exportación lista	Export ready	Exportação pronta	Exportation prête	Export bereit
+Videos largos	Long videos	Vídeos longos	Vidéos longues	Lange Videos
+Recursos del proyecto	Project assets	Recursos do projeto	Ressources du projet	Projektmedien
+Importar contenido	Import media	Importar conteúdo	Importer des médias	Medien importieren
+Añadir al cursor	Add at playhead	Adicionar no cursor	Ajouter au curseur	Am Abspielkopf hinzufügen
+Importa recursos para empezar.	Import media to get started.	Importe recursos para começar.	Importez des médias pour commencer.	Importiere Medien, um zu beginnen.
+Usar fuente completa	Use entire source	Usar fonte completa	Utiliser toute la source	Gesamte Quelle verwenden
+Toda la fuente está disponible. Ajusta el rango y el zoom para trabajar con videos largos.	The entire source is available. Adjust the range and zoom to edit long videos.	A fonte inteira está disponível. Ajuste o intervalo e o zoom para editar vídeos longos.	Toute la source est disponible. Ajustez la plage et le zoom pour monter des vidéos longues.	Die gesamte Quelle ist verfügbar. Passe Bereich und Zoom für lange Videos an.
+Bloquear zona segura	Lock safe area	Bloquear área segura	Verrouiller la zone sûre	Sicheren Bereich sperren
+Desbloquear zona segura	Unlock safe area	Desbloquear área segura	Déverrouiller la zone sûre	Sicheren Bereich entsperren
+Bloquear	Lock	Bloquear	Verrouiller	Sperren
+Desbloquear	Unlock	Desbloquear	Déverrouiller	Entsperren
+La IA usa la zona centrada como referencia. Desbloquea para ajustar los márgenes del montaje.	AI uses the centered area as a reference. Unlock to adjust your edit's margins.	A IA usa a área centralizada como referência. Desbloqueie para ajustar as margens da edição.	L’IA utilise la zone centrée comme référence. Déverrouillez pour ajuster les marges du montage.	Die KI nutzt den zentrierten Bereich als Referenz. Entsperre ihn, um die Ränder anzupassen.
+Plantillas guardadas	Saved templates	Modelos salvos	Modèles enregistrés	Gespeicherte Vorlagen
+Selecciona una plantilla	Select a template	Selecione um modelo	Sélectionner un modèle	Vorlage auswählen
+Nombre de la plantilla	Template name	Nome do modelo	Nom du modèle	Vorlagenname
+Guardar plantilla	Save template	Salvar modelo	Enregistrer le modèle	Vorlage speichern
+Centrar zona	Center area	Centralizar área	Centrer la zone	Bereich zentrieren
+Inicio en el recurso (s)	Start within asset (s)	Início no recurso (s)	Début dans le média (s)	Start im Medium (s)
+Seguir sujeto con IA	Track subject with AI	Seguir sujeito com IA	Suivre le sujet avec l’IA	Motiv mit KI verfolgen
+Movimiento interpolado entre las referencias visuales de la IA.	Motion interpolated between AI visual references.	Movimento interpolado entre as referências visuais da IA.	Mouvement interpolé entre les références visuelles de l’IA.	Interpolierte Bewegung zwischen den visuellen KI-Referenzen.
+Añade imágenes, videos o audio al cursor. Las imágenes y videos ocupan el lienzo; ajusta su tiempo y volumen en Propiedades.	Add images, video or audio at the playhead. Images and videos fill the canvas; adjust timing and volume in Properties.	Adicione imagens, vídeos ou áudio no cursor. Imagens e vídeos ocupam a tela; ajuste o tempo e o volume em Propriedades.	Ajoutez des images, vidéos ou sons au curseur. Images et vidéos occupent le canevas ; ajustez leur durée et volume dans Propriétés.	Füge Bilder, Videos oder Audio am Abspielkopf ein. Bilder und Videos füllen die Leinwand; passe Zeit und Lautstärke in den Eigenschaften an.
+Escribe un nombre para la plantilla	Enter a template name	Digite um nome para o modelo	Saisissez un nom de modèle	Gib einen Vorlagennamen ein
+Plantilla guardada	Template saved	Modelo salvo	Modèle enregistré	Vorlage gespeichert
+No se pudo guardar la plantilla	Could not save the template	Não foi possível salvar o modelo	Impossible d’enregistrer le modèle	Vorlage konnte nicht gespeichert werden
 Proyectos	Projects	Projetos	Projets	Projekte
 Videos	Videos	Vídeos	Vidéos	Videos
 Recursos	Resources	Recursos	Ressources	Ressourcen
@@ -278,6 +364,8 @@ Horizontal	Horizontal	Horizontal	Horizontal	Horizontal
 Vertical	Vertical	Vertical	Vertical	Vertikal
 Tamaño	Size	Tamanho	Taille	Größe
 Duración	Duration	Duração	Durée	Dauer
+Segundos, M:SS o H:MM:SS	Seconds, M:SS or H:MM:SS	Segundos, M:SS ou H:MM:SS	Secondes, M:SS ou H:MM:SS	Sekunden, M:SS oder H:MM:SS
+Usa segundos, M:SS o H:MM:SS (hasta 24 horas).	Enter seconds, M:SS or H:MM:SS (up to 24 hours).	Use segundos, M:SS ou H:MM:SS (até 24 horas).	Saisissez des secondes, M:SS ou H:MM:SS (24 heures maximum).	Sekunden, M:SS oder H:MM:SS eingeben (bis zu 24 Stunden).
 Duración (segundos)	Duration (seconds)	Duração (segundos)	Durée (secondes)	Dauer (Sekunden)
 Dura (s)	Duration (s)	Duração (s)	Durée (s)	Dauer (s)
 Empieza (s)	Start (s)	Início (s)	Début (s)	Start (s)
@@ -922,3 +1010,41 @@ días	days	dias	jours	Tage
 /3 niveles	/3 tiers	/3 níveis	/3 niveaux	/3 Stufen
 modelos disponibles en esta conexión	models available on this connection	modelos disponíveis nesta conexão	modèles disponibles sur cette connexion	Modelle für diese Verbindung verfügbar
 trabajos	jobs	trabalhos	tâches	Aufträge
+Agente de edición	Editing agent	Agente de edição	Agent de montage	Schnittassistent
+Aplicar cambios automáticamente	Apply changes automatically	Aplicar alterações automaticamente	Appliquer les modifications automatiquement	Änderungen automatisch anwenden
+Imagina. Pídelo. Míralo.	Imagine it. Ask. Watch.	Imagine. Peça. Veja.	Imaginez. Demandez. Regardez.	Vorstellen. Anfragen. Ansehen.
+Añadir un título animado	Add an animated title	Adicionar um título animado	Ajouter un titre animé	Animierten Titel hinzufügen
+Dar estilo al video	Style the video	Estilizar o vídeo	Donner du style à la vidéo	Video gestalten
+Sin modelos configurados	No models configured	Nenhum modelo configurado	Aucun modèle configuré	Keine Modelle konfiguriert
+cambios aplicados	changes applied	alterações aplicadas	modifications appliquées	Änderungen angewendet
+Selecciona un cambio para verlo. Ctrl+Z deshace la edición completa.	Select a change to view it. Ctrl+Z undoes the entire edit.	Selecione uma alteração para vê-la. Ctrl+Z desfaz toda a edição.	Sélectionnez une modification pour la voir. Ctrl+Z annule tout le montage.	Wähle eine Änderung aus. Strg+Z macht die gesamte Bearbeitung rückgängig.
+Describe tu idea. Los cambios aparecerán en el lienzo y la línea de tiempo; puedes deshacerlos.	Describe your idea. Changes appear on the canvas and timeline; you can undo them.	Descreva sua ideia. As alterações aparecem na tela e na linha do tempo; você pode desfazê-las.	Décrivez votre idée. Les modifications apparaissent dans l’aperçu et la chronologie ; vous pouvez les annuler.	Beschreibe deine Idee. Änderungen erscheinen in der Vorschau und Zeitleiste; du kannst sie rückgängig machen.
+El agente está preparando tu edición…	The agent is preparing your edit…	O agente está preparando sua edição…	L’agent prépare votre montage…	Der Assistent bereitet deine Bearbeitung vor…
+Interpretando tu instrucción con el montaje, la selección y las herramientas disponibles…	Interpreting your request using the timeline, selection and available tools…	Interpretando sua instrução com a montagem, a seleção e as ferramentas disponíveis…	Interprétation de votre demande avec le montage, la sélection et les outils disponibles…	Deine Anfrage wird mit Zeitleiste, Auswahl und verfügbaren Werkzeugen verarbeitet…
+Edición validada. Lista para aplicar.	Edit validated. Ready to apply.	Edição validada. Pronta para aplicar.	Montage validé. Prêt à appliquer.	Bearbeitung geprüft. Bereit zur Anwendung.
+Propuesta descartada.	Proposal discarded.	Proposta descartada.	Proposition ignorée.	Vorschlag verworfen.
+El agente respondió sin modificar el montaje.	The agent replied without changing the timeline.	O agente respondeu sem alterar a montagem.	L’agent a répondu sans modifier le montage.	Der Assistent hat geantwortet, ohne die Zeitleiste zu ändern.
+Tu edición manual se conservó.	Your manual edits were preserved.	Suas edições manuais foram preservadas.	Vos modifications manuelles ont été conservées.	Deine manuellen Änderungen wurden beibehalten.
+Edición descartada por cambios simultáneos.	Edit discarded because the timeline changed.	Edição descartada devido a alterações simultâneas.	Montage ignoré en raison de modifications simultanées.	Bearbeitung wegen gleichzeitiger Änderungen verworfen.
+No se aplicaron cambios del agente.	No agent changes were applied.	Nenhuma alteração do agente foi aplicada.	Aucune modification de l’agent n’a été appliquée.	Es wurden keine Änderungen des Assistenten angewendet.
+El montaje cambió. El recorrido corresponde a una edición anterior.	The timeline changed. These steps refer to an earlier edit.	A montagem mudou. Estas etapas correspondem a uma edição anterior.	Le montage a changé. Ces étapes correspondent à une version précédente.	Die Zeitleiste wurde geändert. Diese Schritte beziehen sich auf eine frühere Bearbeitung.
+Recortar recurso	Trim asset	Recortar recurso	Rogner le média	Medium zuschneiden
+Ajustar volumen	Adjust volume	Ajustar volume	Régler le volume	Lautstärke anpassen
+Mover recurso	Move asset	Mover recurso	Déplacer le média	Medium verschieben
+Cambiar encuadre	Change framing	Alterar enquadramento	Modifier le cadrage	Bildausschnitt ändern
+Dividir recurso	Split asset	Dividir recurso	Diviser le média	Medium teilen
+Ajustar duración	Adjust duration	Ajustar duração	Régler la durée	Dauer anpassen
+Crear texto	Create text	Criar texto	Créer du texte	Text erstellen
+Ajustar herramientas	Adjust tools	Ajustar ferramentas	Régler les outils	Werkzeuge anpassen
+Cortar	Cut	Recortar	Couper	Ausschneiden
+Pegar	Paste	Colar	Coller	Einfügen
+Duplicar	Duplicate	Duplicar	Dupliquer	Duplizieren
+Pistas	Tracks	Faixas	Pistes	Spuren
+Cerrar chat	Close chat	Fechar chat	Fermer le chat	Chat schließen
+El elemento no cabe en el rango actual.	The item does not fit in the current range.	O elemento não cabe no intervalo atual.	L’élément ne tient pas dans la plage actuelle.	Das Element passt nicht in den aktuellen Bereich.
+Ctrl+C	Ctrl+C	Ctrl+C	Ctrl+C	Strg+C
+Ctrl+X	Ctrl+X	Ctrl+X	Ctrl+X	Strg+X
+Ctrl+V	Ctrl+V	Ctrl+V	Ctrl+V	Strg+V
+Ctrl+D	Ctrl+D	Ctrl+D	Ctrl+D	Strg+D
+Actualizar texto	Update text	Atualizar texto	Modifier le texte	Text aktualisieren
+Ver herramientas utilizadas	View tools used	Ver ferramentas utilizadas	Voir les outils utilisés	Verwendete Werkzeuge anzeigen

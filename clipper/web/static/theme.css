@@ -10,7 +10,7 @@ h1{font-size:28px;font-weight:600;letter-spacing:-.025em}
 .page-head p{color:var(--mut);margin-top:6px}
 a{color:#fff;text-underline-offset:3px;text-decoration-color:#fff6}
 
-/* brand and navigation */
+/* marca y navegación */
 #sidebar{background:#000;border-right:1px solid var(--line);padding:22px 14px}
 .brand{display:flex;align-items:center;gap:11px;padding:2px 10px 28px;font-size:17px;font-weight:600;letter-spacing:-.03em;color:#fff}
 .brand .mark{width:28px;height:28px;display:block;flex:none}
@@ -124,7 +124,7 @@ details{border-color:var(--line);border-radius:12px}
   .modal{padding:0}.modal>.card{border-radius:0;min-height:100%}
   .tiers{grid-template-columns:1fr}
 }
-/* the editor needs room: narrow screens hide the side panels */
+/* el editor necesita espacio: en pantallas estrechas se ocultan los paneles laterales */
 @media(max-width:1000px){
   .ed{grid-template-rows:52px minmax(0,1fr) 250px}
   .ed-work{grid-template-columns:minmax(0,1fr)}

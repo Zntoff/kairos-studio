@@ -2,23 +2,36 @@
 #ifndef AppVersion
   #error AppVersion is required
 #endif
+#ifndef AppNumericVersion
+  #define AppNumericVersion AppVersion
+#endif
 #ifndef SourceDir
   #error SourceDir is required
 #endif
 #ifndef ReleaseDir
   #error ReleaseDir is required
 #endif
+#ifdef InstallerTestId
+  #define InstalledAppId InstallerTestId
+  #define InstalledAppName "Kairos Studio Installer Test"
+#else
+  #define InstalledAppId "{7AAFBFBF-6B62-4DC3-B559-25CB927CFF44}"
+  #define InstalledAppName "Kairos Studio"
+#endif
 [Setup]
-AppId={{7AAFBFBF-6B62-4DC3-B559-25CB927CFF44}
-AppName=Kairos Studio
+AppId={#"{" + InstalledAppId}
+AppName={#InstalledAppName}
 AppVersion={#AppVersion}
 AppPublisher=ZNTOff
-AppPublisherURL=https://github.com/Zntoff/kairos-studio
-AppSupportURL=https://github.com/Zntoff/kairos-studio/issues
-AppUpdatesURL=https://github.com/Zntoff/kairos-studio/releases/latest
-VersionInfoVersion={#AppVersion}
+VersionInfoVersion={#AppNumericVersion}
 DefaultDirName={localappdata}\Programs\Kairos Studio
 DefaultGroupName=Kairos Studio
+UsePreviousAppDir=yes
+UsePreviousTasks=yes
+DisableDirPage=auto
+UninstallDisplayName={#InstalledAppName}
+UninstallLogMode=append
+SetupMutex=KairosStudioInstaller
 PrivilegesRequired=lowest
 ArchitecturesAllowed=x64os
 ArchitecturesInstallIn64BitMode=x64os
@@ -55,13 +68,46 @@ Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{
 Source: "{#SourceDir}\*"; DestDir: "{app}"; Excludes: "portable.flag,data\*"; Flags: ignoreversion recursesubdirs createallsubdirs
 
 [Icons]
-Name: "{autoprograms}\Kairos Studio"; Filename: "{app}\KairosStudio.exe"; WorkingDir: "{app}"
-Name: "{autodesktop}\Kairos Studio"; Filename: "{app}\KairosStudio.exe"; WorkingDir: "{app}"; Tasks: desktopicon
+Name: "{autoprograms}\{#InstalledAppName}"; Filename: "{app}\KairosStudio.exe"; WorkingDir: "{app}"
+Name: "{autodesktop}\{#InstalledAppName}"; Filename: "{app}\KairosStudio.exe"; WorkingDir: "{app}"; Tasks: desktopicon
 
 [Run]
+#ifndef InstallerTestId
 Filename: "{app}\KairosStudio.exe"; Description: "{cm:LaunchProgram,Kairos Studio}"; Flags: nowait postinstall skipifsilent; Check: HasWebView2
+#endif
 
 [Code]
+var ExistingAppDir: String;
+
+function RegisteredAppDir(RootKey: Integer): String;
+var Location: String;
+begin
+  Result := '';
+  if RegQueryStringValue(RootKey,
+    'Software\Microsoft\Windows\CurrentVersion\Uninstall\{#InstalledAppId}_is1',
+    'InstallLocation', Location) then begin
+    if (Location <> '') and DirExists(Location) and
+      (FileExists(AddBackslash(Location) + 'KairosStudio.exe') or
+       FileExists(AddBackslash(Location) + 'unins000.exe')) then
+      Result := RemoveBackslashUnlessRoot(Location);
+  end;
+end;
+
+procedure InitializeWizard;
+begin
+  ExistingAppDir := RegisteredAppDir(HKCU64);
+  if ExistingAppDir = '' then ExistingAppDir := RegisteredAppDir(HKCU32);
+  if ExistingAppDir <> '' then begin
+    Log('Updating existing Kairos installation: ' + ExistingAppDir);
+    WizardForm.DirEdit.Text := ExistingAppDir;
+  end;
+end;
+
+function ShouldSkipPage(PageID: Integer): Boolean;
+begin
+  Result := (PageID = wpSelectDir) and (ExistingAppDir <> '');
+end;
+
 function HasWebView2: Boolean;
 var Version: String;
 begin
@@ -74,6 +120,8 @@ function PrepareToInstall(var NeedsRestart: Boolean): String;
 var ExitCode: Integer;
 begin
   Result := '';
+  { Updates always replace the registered copy, including when /DIR was supplied. }
+  if ExistingAppDir <> '' then WizardForm.DirEdit.Text := ExistingAppDir;
   if not HasWebView2 then begin
     ExtractTemporaryFile('MicrosoftEdgeWebview2Setup.exe');
     if not Exec(ExpandConstant('{tmp}\MicrosoftEdgeWebview2Setup.exe'), '/silent /install', '', SW_HIDE, ewWaitUntilTerminated, ExitCode) or not HasWebView2 then

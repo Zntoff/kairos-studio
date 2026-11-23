@@ -1,0 +1,98 @@
+.ve{position:fixed;inset:0;z-index:100;background:var(--bg);display:grid;grid-template-rows:58px minmax(180px,1fr) 240px;color:var(--tx)}
+.ve-top,.ve-transport,.ve-tltools{display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--panel);border-bottom:1px solid var(--line)}
+.ve .sp{flex:1}.ve-top strong{max-width:22vw;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ve-work{display:grid;grid-template-columns:270px minmax(0,1fr) 245px;min-height:0}
+.ve-sidebar{border-right:1px solid var(--line);display:flex;flex-direction:column;min-height:0;background:var(--panel)}
+.ve-assets{flex:1;overflow:auto;padding:16px}.ve-assets h3,.ve-inspector h3{font-size:14px;margin:0 0 12px}
+.ve-asset{display:flex;align-items:center;gap:10px;width:100%;padding:12px 8px;border:1px solid var(--line);background:var(--panel2);color:var(--tx);border-radius:8px;margin:7px 0;text-align:left;cursor:pointer}
+.ve-asset span{flex:1;overflow:hidden;text-overflow:ellipsis}.ve-asset svg{width:18px;flex-shrink:0}
+.ve-ai-button{position:fixed;left:12px;bottom:12px;z-index:4;display:flex;align-items:center;gap:12px;padding:12px 16px;background:#191923;color:#fff;border:1px solid #77718b;border-radius:12px;cursor:pointer}.ve-ai-button img{width:28px;height:28px}
+.ve-center{display:grid;grid-template-rows:minmax(0,1fr) 50px;min-height:0;min-width:0}.ve-preview{position:relative;display:flex;align-items:center;justify-content:center;overflow:hidden;background:var(--bg)}
+.ve-canvas{position:relative;background:#000;box-shadow:0 4px 28px #0006;overflow:hidden}.ve-empty{position:absolute;color:#aaa;pointer-events:none;text-align:center}.ve-transport input{flex:1;min-width:40px}.ve-transport span{font-size:12px;white-space:nowrap}
+.ve-inspector{padding:16px;overflow:auto;border-left:1px solid var(--line);background:var(--panel)}.ve-inspector input,.ve-inspector select{width:100%}
+.ve-timeline{display:grid;grid-template-rows:48px minmax(0,1fr);min-height:0;border-top:1px solid var(--line)}.ve-tltools label{display:flex;align-items:center;gap:8px;font-size:12px;margin:0}.ve-tltools input{width:100px;margin:0}
+.ve-scroll{overflow:auto;position:relative}#veTracks{position:relative;min-height:100%;padding-bottom:18px}.ve-ruler{position:relative;height:26px;background:var(--panel2);border-bottom:1px solid var(--line)}.ve-ruler span{position:absolute;font-size:11px;white-space:nowrap}
+.ve-lane{height:38px;border-bottom:1px solid var(--line);position:relative}.ve-item{position:absolute;top:4px;height:29px;border:1px solid #639da2;border-radius:5px;background:#315d68;color:#fff;font:inherit;font-size:11px;overflow:hidden;text-align:left;white-space:nowrap;cursor:grab;touch-action:none}.ve-item.selected{outline:2px solid #fff;outline-offset:-2px}.ve-playhead{position:absolute;top:0;bottom:0;width:2px;background:#f4cf6f;pointer-events:none}
+.ve-ai-panel{position:absolute;left:14px;bottom:78px;width:375px;max-width:calc(100vw - 28px);max-height:75vh;overflow:auto;background:var(--panel);border:1px solid var(--line2);border-radius:14px;padding:20px;box-shadow:0 12px 50px #0009;z-index:5}.ve-ai-panel[hidden]{display:none}.ve-ai-panel textarea,.ve-ai-panel select{width:100%}.ve-ai-panel h3{margin-top:0}.ve-ai-panel p{font-size:12px}.ve-inspector p{overflow-wrap:anywhere}
+@media(max-width:1050px){.ve-work{grid-template-columns:220px minmax(0,1fr) 200px}.ve-top>.mut{display:none}}
+@media(max-width:760px){.ve{grid-template-rows:auto minmax(200px,1fr) 200px}.ve-top{flex-wrap:wrap;gap:5px}.ve-top strong{max-width:45vw}.ve-work{grid-template-columns:140px minmax(0,1fr)}.ve-inspector{position:absolute;right:0;top:110px;bottom:245px;width:190px;z-index:3;display:none}.ve-work:has(.ve-inspector input) .ve-inspector{display:block}.ve-assets{padding:9px}.ve-ai-button{font-size:0;padding:8px}.ve-ai-button img{width:30px}.ve-tltools{gap:5px;padding:6px}.ve-tltools>b{display:none}.ve-tltools input{width:70px}.ve-transport{padding:5px}.ve-transport span{font-size:10px}}
+
+/* The full Shorts tool workspace, with a persistent right-hand chat dock. */
+.ve{grid-template-rows:58px 48px minmax(220px,1fr) 275px}
+.ve-toolbar{display:flex;align-items:center;gap:6px;padding:6px 12px;background:var(--panel);border-bottom:1px solid var(--line);overflow-x:auto}
+.ve-tool-tabs{display:flex;gap:3px}.ve-toolbar button{white-space:nowrap}.ve-tool-tabs [aria-selected=true],.ve-toolbar .on{border-color:var(--ac);background:var(--ac-bg);color:var(--tx)}
+.ve-work{grid-template-columns:300px minmax(0,1fr) 340px}.ve-sidebar{overflow:hidden}.ve-tool-body{overflow:auto;padding:14px;min-height:0;flex:1}.ve-tool-body[hidden]{display:none}
+.ve-tool-body h3{font-size:14px;margin:0 0 14px}.ve-tool-body h4{font-size:12px;margin:16px 0 8px}.ve-tool-body label{display:block;margin:10px 0;font-size:12px}.ve-tool-body input:not([type=checkbox]),.ve-tool-body select,.ve-tool-body textarea{width:100%}.ve-tool-body output{display:block;text-align:right;color:var(--mut);font-size:11px}.ve-tool-body fieldset{border:0;padding:0;margin:0}.ve-tool-body .tog{display:flex;gap:8px;align-items:flex-start}
+.ve-options{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}.ve-options .b{white-space:normal;justify-content:center}.ve-entry{display:block;width:100%;overflow:hidden;text-align:left;text-overflow:ellipsis;margin:5px 0}.ve-entry span{overflow:hidden;text-overflow:ellipsis}.ve-sound{display:flex;gap:6px;align-items:center;margin:6px 0}.ve-sound>span{flex:1;font-size:11px;overflow:hidden;text-overflow:ellipsis}.ve-sound .b{flex-shrink:0}
+.ve-right{display:grid;grid-template-rows:minmax(120px,.65fr) minmax(250px,1fr);min-width:0;min-height:0;border-left:1px solid var(--line);background:var(--panel)}
+.ve-right .ve-inspector{position:static;display:block;width:auto;padding:14px;border:0;border-bottom:1px solid var(--line);overflow:auto;min-height:0}.ve-right .ve-inspector[hidden]{display:none}.ve-right.ve-chat-only,.ve-right.ve-props-only{grid-template-rows:minmax(0,1fr)}
+.ve-chat{display:grid;grid-template-rows:auto auto minmax(40px,1fr) auto auto;overflow:hidden;min-height:0;padding:12px;gap:7px}.ve-chat[hidden]{display:none}
+.ve-chat-heading{display:flex;align-items:center;gap:10px}.ve-chat-heading img{width:22px;height:22px;background:#191923;border-radius:4px}.ve-chat-heading h3{font-size:13px;margin:0}.ve-chat-billing{font-size:10px;line-height:1.4;margin:0;max-height:42px;overflow:auto}
+.ve-chat-messages{overflow:auto;min-height:0;display:flex;flex-direction:column;gap:9px;overscroll-behavior:contain}.ve-message{border:1px solid var(--line);border-radius:9px;padding:9px 11px;margin-right:12px;background:var(--panel2)}.ve-message.user{margin-right:0;margin-left:20px;background:var(--ac-bg)}.ve-message>small{font-size:10px;color:var(--mut)}.ve-message p{font-size:12px;line-height:1.5;white-space:pre-wrap;overflow-wrap:anywhere;margin:4px 0}.ve-chat-composer textarea{width:100%;resize:vertical;min-height:48px;max-height:130px;font-size:12px}.ve-chat-composer>div{display:flex;gap:8px;align-items:center}.ve-chat-composer select{flex:1;min-width:80px;margin:0}.ve-chat-composer #veAiStatus{font-size:10px;margin:3px 0;overflow-wrap:anywhere}.ve-chat #veProposal p{font-size:11px;margin:2px 0}.ve-chat #veProposal button{font-size:11px;padding:5px 9px}
+.ve.ve-hide-right .ve-work{grid-template-columns:300px minmax(0,1fr)}.ve.ve-hide-right .ve-right{display:none}
+.ve-inspector label{display:block;margin:9px 0;font-size:12px}.ve-inspector textarea{width:100%}.ve-inspector .tog{display:flex;gap:8px}.ve-inspector .tog input{width:auto}
+.ve-stats{display:grid;grid-template-columns:1fr 1fr;gap:10px}.ve-stats>div{background:var(--panel2);border:1px solid var(--line);padding:9px;border-radius:7px;display:flex;flex-direction:column;gap:4px}.ve-stats small{font-size:10px;color:var(--mut)}.ve-stats b{font-size:15px}
+.ve-tltools{overflow-x:auto;white-space:nowrap;padding:5px 10px;gap:6px}.ve-tltools>b{display:none}.ve-tltools .b{flex-shrink:0}.ve-timeline{grid-template-rows:48px minmax(0,1fr)}.ve-tltools input{width:85px}.ve-transport input{min-width:30px}.ve-transport button{flex-shrink:0}.ve-handle{position:absolute;top:0;bottom:0;width:7px;cursor:ew-resize;background:#ffffff18}.ve-handle[data-edge=l]{left:0}.ve-handle[data-edge=r]{right:0}.ve-item>span{padding:0 8px}.ve-text,.ve-hook,.ve-note{background:#715134;border-color:#bd925a}.ve-cue{background:#574272;border-color:#9c86b7}.ve-fx{background:#3c5d3c;border-color:#7c9d73}.ve-sfx{background:#365f75;border-color:#6d9cb3}
+.ve-picture{position:absolute;inset:0;transform-origin:center;overflow:hidden}.ve-overlays{position:absolute;left:0;top:0;pointer-events:none;z-index:2}.ve-overlay{position:absolute;transform:translate(-50%,-50%) rotate(var(--ve-rotate,0deg)) scale(var(--ve-scale,1));transform-origin:center;text-align:center;white-space:pre-wrap;width:max-content;color:#fff;pointer-events:auto;cursor:move;touch-action:none;line-height:1.2}.ve-safe-guide{position:absolute;outline:1px dashed #ffe68099;box-shadow:0 0 0 3000px #0002;pointer-events:none;z-index:3}.ve-safe-guide[hidden]{display:none}.ve-video-fade{position:absolute;inset:0;pointer-events:none;z-index:6}.ve-empty{z-index:1}#veVignette{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:1}#veFaceCanvas{position:absolute;pointer-events:none;z-index:1}
+@media(max-width:1200px){.ve-work{grid-template-columns:255px minmax(0,1fr) 300px}.ve.ve-hide-right .ve-work{grid-template-columns:255px minmax(0,1fr)}.ve-toolbar{padding:5px}.ve-tool-tabs button{font-size:11px;padding:6px 7px}.ve-toolbar #vePropsToggle{display:none}}
+@media(max-width:850px){.ve{grid-template-rows:55px 45px minmax(220px,1fr) 235px}.ve-work{grid-template-columns:205px minmax(0,1fr) 275px}.ve-tool-tabs button svg{display:none}.ve-tool-body{padding:9px}.ve-top>.mut{display:none}.ve-top strong{max-width:22vw}.ve-transport{gap:3px;padding:5px}.ve-transport span{font-size:10px}.ve-right{grid-template-rows:minmax(80px,.5fr) minmax(220px,1fr)}}
+/* Agent feedback follows actual request/application states. */
+.ve-chat{grid-template-rows:auto auto auto minmax(45px,1fr) auto auto auto}
+.ve-right{grid-template-rows:minmax(100px,.4fr) minmax(360px,1fr)}
+.ve-agent-mode{display:flex;align-items:center;gap:8px;padding:8px 16px;color:#c5b7ff;font-size:12px}
+.ve-agent-mode small{margin-left:auto;color:var(--mut)}
+.ve-agent-dot{width:7px;height:7px;border-radius:50%;background:#b69bff;box-shadow:0 0 12px #a886ff88}
+.ve-agent-auto{display:flex;align-items:center;gap:8px;font-size:12px;margin-bottom:10px;cursor:pointer}
+.ve-agent-auto input{width:auto;accent-color:#ab88ff}
+.ve-agent-welcome{padding:24px 8px;text-align:center;color:var(--mut)}
+.ve-agent-welcome>span{display:inline-grid;place-items:center;width:56px;height:56px;background:radial-gradient(circle,#9b73ed44,transparent 70%);color:#cfbaff}
+.ve-agent-welcome h3{font-size:17px;color:var(--tx);margin:10px 0}
+.ve-agent-welcome p{font-size:13px;line-height:1.6}
+.ve-agent-welcome button{margin-top:8px;width:100%}
+.ve-agent-activity:empty{display:none}
+.ve-agent-activity{padding:10px;margin:0;border:1px solid #ac8bf33b;border-radius:12px;background:linear-gradient(135deg,#9f71ff12,#56d8ca06);font-size:12px;max-height:120px;overflow:auto}
+.ve-agent-activity>strong{display:block;margin-bottom:8px;color:#baebd8}
+.ve-agent-activity>small{display:block;margin-top:8px;color:var(--mut);line-height:1.5}
+.ve-agent-step{display:flex;align-items:center;gap:8px;width:100%;padding:8px;border:0;border-radius:8px;background:transparent;color:inherit;text-align:left;cursor:pointer}
+.ve-agent-step>span:first-child{display:grid;place-items:center;min-width:22px;height:22px;border:1px solid #ac8bf34d;border-radius:50%;font-size:11px}
+.ve-agent-step>span:nth-child(2){flex:1}
+.ve-agent-step svg{width:14px;height:14px;opacity:.5}
+.ve-agent-step:hover,.ve-agent-step.active{background:#ac8bf31c}
+.ve-chat[aria-busy=true] .ve-agent-dot{animation:ve-agent-pulse 1.4s ease-in-out infinite}
+.ve-chat[aria-busy=true] .ve-agent-activity{animation:ve-agent-pulse 2s ease-in-out infinite}
+.ve-agent-reveal .ve-canvas,.ve-agent-reveal .ve-item.selected{animation:ve-agent-reveal .8s ease-out}
+.ve-chat-composer select{max-width:100%;min-width:0;flex:1;text-overflow:ellipsis}
+@keyframes ve-agent-pulse{50%{opacity:.45}}
+@keyframes ve-agent-reveal{0%{box-shadow:0 0 0 2px #bb95ff,0 0 30px #a57aff55}100%{box-shadow:0 0 0 0 transparent}}
+@media(prefers-reduced-motion:reduce){.ve-chat[aria-busy=true] .ve-agent-dot,.ve-chat[aria-busy=true] .ve-agent-activity,.ve-agent-reveal .ve-canvas,.ve-agent-reveal .ve-item.selected{animation:none}}
+/* Same three-panel workspace and labeled tracks as Shorts. The agent floats. */
+.ve{grid-template-rows:58px minmax(180px,1fr) 300px}
+.ve-work{grid-template-columns:300px minmax(0,1fr) 280px}
+.ve-sidebar{display:grid;grid-template-columns:76px minmax(0,1fr);overflow:hidden}
+.ve-toolbar{display:flex;flex-direction:column;align-items:stretch;gap:4px;padding:8px 5px;border-right:1px solid var(--line);border-bottom:0;overflow-y:auto;grid-column:1;grid-row:1}
+.ve-tool-tabs{display:flex;flex-direction:column;gap:4px}
+.ve-toolbar .sp{display:none}
+.ve-toolbar button,.ve-tool-tabs button{display:flex;flex-direction:column;justify-content:center;gap:5px;font-size:10px;white-space:normal;min-height:48px;padding:6px 3px;border-color:transparent;border-radius:7px}
+.ve-toolbar button svg{display:block;width:18px;height:18px}
+.ve-toolbar #veChatToggle{display:none}
+.ve .ve-toolbar #vePropsToggle{display:flex}
+.ve-tool-body{grid-column:2;grid-row:1;padding:14px 10px}
+.ve-right{display:block;overflow:hidden}
+.ve-right .ve-inspector{height:100%}
+.ve-chat{position:absolute;right:18px;bottom:86px;z-index:12;width:390px;max-width:calc(100vw - 36px);height:min(640px,calc(100vh - 110px));padding:16px;gap:8px;background:var(--panel);border:1px solid var(--line2);border-radius:16px;box-shadow:0 18px 65px #0008;grid-template-rows:auto auto auto minmax(65px,1fr) auto auto auto}
+.ve-chat-heading h3{flex:1}.ve-chat-heading button{width:28px;height:28px;padding:5px}.ve-chat-heading svg{width:16px}
+.ve-ai-button{left:auto;right:20px;bottom:20px;z-index:13;border-radius:50px;padding:12px 18px;background:var(--panel);color:var(--tx);border:1px solid var(--line2);box-shadow:0 4px 24px #0005;font-size:12px}
+.ve-ai-button[aria-expanded=true]{border-color:#ad8bea;box-shadow:0 0 20px #ad8bea28}
+.ve-ai-button img{width:24px;height:24px}.ve-ai-button:focus-visible{outline:2px solid var(--ac);outline-offset:3px}
+.ve-tlbody{display:grid;grid-template-columns:112px minmax(0,1fr);overflow:hidden;min-height:0}
+#veLaneHeads{overflow:hidden;background:var(--panel);border-right:1px solid var(--line)}
+#veHeads>div{display:flex;align-items:flex-start;gap:6px;padding:11px 9px;font-size:11px;border-bottom:1px solid var(--line);box-sizing:border-box}
+#veHeads svg{width:13px;height:13px}.ve-lane-ruler{height:26px;padding:4px 9px!important;color:var(--mut)}
+.ve-lane{background:var(--panel2)}.ve-lane:nth-child(even){background:var(--panel)}
+.ve-item{border-radius:4px}.ve-tltools{padding-right:160px}.ve-menu{position:fixed;z-index:30;width:220px;background:var(--panel);border:1px solid var(--line2);border-radius:10px;padding:6px;box-shadow:0 12px 40px #0007}
+.ve-menu button{display:flex;align-items:center;justify-content:space-between;gap:16px;width:100%;padding:9px 10px;border:0;background:transparent;color:var(--tx);border-radius:5px;text-align:left;cursor:pointer;font:inherit;font-size:12px}
+.ve-menu button:hover,.ve-menu button:focus-visible{background:var(--panel2)}.ve-menu button:disabled{opacity:.35;cursor:default}.ve-menu kbd{font-size:10px;color:var(--mut)}
+@media(max-width:1100px){.ve-work{grid-template-columns:260px minmax(0,1fr) 230px}.ve-tool-body{padding:10px 8px}.ve-top>.mut{display:none}}
+@media(max-width:850px){.ve-work{grid-template-columns:235px minmax(0,1fr)}.ve-right{position:absolute;right:0;top:58px;bottom:300px;width:230px;z-index:5;border:1px solid var(--line)}.ve-right:has(.ve-inspector:not([hidden])){display:block}.ve-right:has(.ve-inspector[hidden]){display:none}.ve-toolbar #vePropsToggle{display:flex}.ve{grid-template-rows:58px minmax(180px,1fr) 260px}.ve-chat{bottom:80px}.ve-top strong{max-width:30vw}}
+.ve.ve-hide-right .ve-work{grid-template-columns:300px minmax(0,1fr)}
+.ve-tool-trace{font-size:10px;margin-top:10px;color:var(--mut)}.ve-tool-trace summary{cursor:pointer}.ve-tool-trace ol{padding-left:18px}.ve-tool-trace code{font-size:10px;overflow-wrap:anywhere}.ve-tool-trace p{font-size:10px}

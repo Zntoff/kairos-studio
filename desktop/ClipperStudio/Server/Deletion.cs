@@ -10,7 +10,7 @@ public partial class Api
     {
         app.MapDelete("/api/library/{kind}/{id}",(string kind,string id)=>
         {
-            if(kind is not ("projects" or "sources" or "clips" or "resources"))return Err(404,"Unknown library item");
+            if(kind is not ("projects" or "sources" or "clips" or "resources" or "video_projects"))return Err(404,"Unknown library item");
             lock(_jobLock)
             {
                 var item=_store.Get(kind,id);if(item==null)return Err(404,"Item not found");

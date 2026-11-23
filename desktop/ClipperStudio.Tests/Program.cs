@@ -22,9 +22,30 @@ void Check(bool ok, string message)
     if (!ok) throw new Exception(message);
     checks++;
 }
+if(args.Contains("--composition-only"))
+{
+    var compositionApi=new Api();await compositionApi.StartAsync();
+    try{await VideoProjectChecks.Run(compositionApi,Check);Console.WriteLine($"Passed {checks} composition checks.");}
+    finally{await compositionApi.StopAsync();}
+    return;
+}
 Check(J.D(JsonValue.Create(42)) == 42, "Integer JSON numbers must retain their value.");
 Check(J.D(JsonValue.Create(42L)) == 42, "Long JSON numbers must retain their value.");
 Check(J.D(JsonValue.Create("NaN"), -1) == -1, "Non-finite numbers must be rejected.");
+var acousticWords=Whisper.ParseWords(JsonNode.Parse("""
+{"transcription":[{"text":" Hola mundo.","offsets":{"from":0,"to":6000},"tokens":[
+{"text":"[_BEG_]","offsets":{"from":0,"to":0},"t_dtw":-1},
+{"text":" Hola","offsets":{"from":0,"to":2000},"t_dtw":154},
+{"text":" mun","offsets":{"from":2000,"to":3000},"t_dtw":304},
+{"text":"do","offsets":{"from":3000,"to":5000},"t_dtw":324},
+{"text":".","offsets":{"from":5000,"to":6000},"t_dtw":334}]}]}
+""")!,6);
+Check(acousticWords.Count==2 && acousticWords[1].W=="mundo.","Acoustic BPE tokens must merge into words and preserve punctuation.");
+Check(Math.Abs(acousticWords[0].Start-1.5)<.001 && Math.Abs(acousticWords[1].Start-3)<.001,"DTW ticks must map to seconds without stretching over leading silence.");
+var pausedCaptions=CaptionKit.CloseGaps(CaptionKit.TimedCues(acousticWords,null,[]),6);
+Check(pausedCaptions.Count==2 && J.D(pausedCaptions[0]["end"])<2.1,"Caption highlighting must stop during speech pauses.");
+var sameFrame=Whisper.ParseWords(JsonNode.Parse("""{"transcription":[{"tokens":[{"text":" de","offsets":{"from":0,"to":100},"t_dtw":100},{"text":" la","offsets":{"from":100,"to":200},"t_dtw":100}]}]}""")!,3);
+Check(sameFrame.Count==1 && sameFrame[0].W=="de la","Words on the same acoustic frame must preserve all spoken text.");
 var portableFixture=Path.Combine(root,"portable-paths");Directory.CreateDirectory(portableFixture);
 Check(Paths.DataDirectory(portableFixture,null)==Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),"ClipperStudio"),"Installed builds must preserve the existing per-user library path.");
 File.WriteAllText(Path.Combine(portableFixture,"portable.flag"),"");
@@ -204,14 +225,20 @@ double viewportWidth = (1080.0 / 1920) / (320.0 / 180), viewportLeft = J.D(frame
 Check(viewportLeft <= .55 && viewportLeft + viewportWidth >= .73, "The proposed subject must remain fully inside the main crop.");
 Check(Framing.SubjectFitsSafe(framedEdl, creativeInput.Source), "Automatic vertical framing must put the subject inside the platform work area.");
 framedEdl["effects"] = new JsonArray(new JsonObject { ["type"] = "zoom_slow", ["intensity"] = 2 });
-frameDecision["framing"]!["subject_region"] = JsonNode.Parse("""{"x":0.55,"y":0.17,"w":0.18,"h":0.46}""");
+frameDecision["framing"]!["subject_region"] = JsonNode.Parse("""{"x":0.55,"y":0.17,"w":0.18,"h":0.86}""");
 Framing.Apply(creativeInput, frameDecision, framedEdl);
 Check(J.S(framedEdl["layout"]) == "gameplay_blur_bg", "A subject that enters the dead zones during a zoom must use protected full-frame fit.");
 var pinnedInput=new Agents.EditInput{ClipId=creativeInput.ClipId,Source=creativeInput.Source,Candidate=creativeInput.Candidate,
     Words=creativeInput.Words,Core=creativeInput.Core,SourceLanguage="es",Languages=["es"],RecentHooks=[],Library=creativeInput.Library,LayoutChoice="center_crop"};
 var unverifiedVertical=new JsonObject{["layout"]="center_crop"};
 Framing.Apply(pinnedInput,new JsonObject(),unverifiedVertical);
-Check(J.S(unverifiedVertical["layout"])=="gameplay_blur_bg","Generation must not produce an unverified pinned vertical crop when no subject region is available.");
+Check(J.S(unverifiedVertical["layout"])=="center_crop","Explicit vertical crop must survive missing subject detection.");
+Framing.Apply(pinnedInput,frameDecision,unverifiedVertical);
+Check(J.S(unverifiedVertical["layout"])=="center_crop","Explicit vertical crop must survive an oversized subject.");
+Check(SafeArea.Top==SafeArea.BottomMargin && SafeArea.Bottom>1500,"Default safe area must be centered and preserve lower canvas content.");
+var oldSafe=SafeArea.Clean(JsonNode.Parse("""{"profile":"shorts_reels_centered_v2","top":300,"bottom":680}"""));
+Check(J.D(oldSafe["top"])==240 && J.D(oldSafe["bottom"])==240,"Legacy locked margins must migrate to the centered profile.");
+
 foreach (var size in new[] {(1920,1080),(1080,1920),(1080,3840),(4096,720)})
 {
     var geometry = Ass.Geom("gameplay_blur_bg", null, size.Item1, size.Item2);
@@ -267,6 +294,11 @@ using var http = new HttpClient { BaseAddress = new Uri(api.Url) };
 await TestSession.Open(http);
 Check((await http.GetAsync("/static/locales.tsv")).IsSuccessStatusCode, "Desktop must serve the shared localization catalog.");
 Check((await http.GetStringAsync("/static/i18n.js")).Contains("kairos.uiLanguage"), "Desktop must serve the UI-only language runtime.");
+using (var demoTrack = await http.GetAsync("/static/demo-source.vtt"))
+{
+    Check(demoTrack.IsSuccessStatusCode && demoTrack.Content.Headers.ContentType?.MediaType == "text/vtt",
+        "Desktop must serve the guided demo's source captions as WebVTT.");
+}
 async Task<JsonNode> Get(string url) => (await http.GetFromJsonAsync<JsonNode>(url))!;
 async Task<JsonNode> Post(string url, object body, HttpStatusCode expected = HttpStatusCode.OK)
 {
@@ -452,7 +484,7 @@ await TestSession.Open(exportHttp);
     editor.SaveDraft(clipId,new JsonObject{["edl"]=J.Clone(unsafeEdit),["tracks"]=J.Clone(retry["tracks"]!)});
     bool rejectedUnsafe=false;
     try {editor.RenderDraft(clipId,_=>{});} catch(EditException){rejectedUnsafe=true;}
-    Check(rejectedUnsafe && store.Get("clips",clipId)!["draft"]!=null,"An unsafe manual subject crop must be rejected without losing the draft.");
+    Check(!rejectedUnsafe,"Manual crop must honor the user framing choice even when the subject extends outside the guide.");
 
     var blackSource = Path.Combine(root,"safe-black.mp4");
     Ff.Run(["-f","lavfi","-i","color=c=black:s=320x180:r=30:d=2","-c:v","libx264",blackSource]);
@@ -485,7 +517,9 @@ await TestSession.Open(exportHttp);
     await api.StartAsync();
     await LocaleChecks.Run(api, Check);
     await ProjectChecks.Run(api.Url, sample, Check);
+    await EditorFeatureChecks.Run(api.Url, sample, Check);
     await DeletionChecks.Run(api.Url, Check);
+    await VideoProjectChecks.Run(api, Check);
     foreach(var device in J.Items(Hw.DeviceList()).Where(d=>J.B(d["available"])))
     {
         var selected=new RenderSettings{Device=J.S(device["id"]),Quality=24,GpuDecode=false};

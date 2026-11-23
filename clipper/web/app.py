@@ -1,6 +1,6 @@
-"""Web panel (FastAPI). Uses the same Store, Orchestrator and rights rules as the CLI:
-it adds no business logic, it only exposes it. Meant for local use: it has no users, so it
-listens on localhost (see docker-compose.yml). Don't expose it to the internet without a proxy with login."""
+"""Panel web (FastAPI). Usa los mismos Store, Orchestrator y reglas de derechos que la CLI:
+no añade lógica de negocio, solo la expone. Pensado para uso local: no tiene usuarios, así
+que escucha en localhost (ver docker-compose.yml). No lo expongas a internet sin proxy con login."""
 from __future__ import annotations
 
 import re
@@ -98,7 +98,7 @@ class MoveProjectBody(BaseModel):
 
 
 class Runs:
-    """Running jobs. One thread at a time: Whisper and FFmpeg already use every core."""
+    """Trabajos en ejecución. Un solo hilo a la vez: Whisper y FFmpeg ya usan todos los núcleos."""
 
     def __init__(self) -> None:
         self.pool = ThreadPoolExecutor(max_workers=1)

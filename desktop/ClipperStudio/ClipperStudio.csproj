@@ -8,14 +8,13 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <AssemblyName>KairosStudio</AssemblyName>
     <RootNamespace>ClipperStudio</RootNamespace>
-    <Version>0.10.0</Version>
+    <Version>0.12.0-beta.11</Version>
     <ApplicationIcon>app.ico</ApplicationIcon>
     <Product>Kairos Studio</Product>
     <Title>Kairos Studio</Title>
     <Authors>ZNTOff</Authors>
     <Copyright>Copyright 2026 ZNTOff. Apache License 2.0.</Copyright>
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
-    <RepositoryUrl>https://github.com/Zntoff/kairos-studio</RepositoryUrl>
     <SatelliteResourceLanguages>es</SatelliteResourceLanguages>
     <InvariantGlobalization>true</InvariantGlobalization>
   </PropertyGroup>

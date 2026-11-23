@@ -23,12 +23,16 @@ First plan the MAIN framing in `framing`. Prefer `mode=fit` for screen recording
 text interfaces, a creator webcam in a corner, or action spread across the frame. This preserves the
 whole video. Choose `subject` only when all essential content fits in one vertical crop; provide a
 source `subject_region` enclosing that content, `frame_index` and `reason`. Never assume crop_x=0.5
-keeps the important subject. On a 1080×1920 output the shared conservative work area is x=80..900,
-y=300..1240. Keep critical faces, hands, action and text inside it, away from bottom captions and the
+keeps the important subject. On a 1080×1920 output the shared conservative work area is x=100..980,
+y=240..1680. Keep critical faces, hands, action and text inside it, away from bottom captions and the
 right button rail. The program centers the subject in this area, accounts for camera zoom/shake and
-uses full-frame fit if the subject cannot fit, including when a pinned vertical crop would be unsafe.
+uses full-frame fit in auto mode if the subject cannot fit. An explicit vertical crop stays vertical.
 When the owner requests a vertical crop, always identify the critical subject_region and frame_index
-so the code can verify it. These are working margins, not universal official organic-platform specs.
+so the code can center it. For a moving primary face or subject, also return
+`framing.subject_track`: one {frame_index, region:{x,y,w,h}} for each supplied image where that
+same subject is visible. The renderer smoothly interpolates these grounded positions for vertical
+tracking. Never invent positions for unseen frames or switch to a different person. If there are
+fewer than two reliable positions, omit the track and use the single grounded crop. These are working margins, not universal official organic-platform specs.
 
 Images are in order and the input lists each `frame_index` and source time. Inspect ALL of them. When a
 visible human face has a meaningful reaction, add `face_focus` to effects with a `region` containing

@@ -6,7 +6,7 @@
     "description": "Whoosh: quick air sweep, for the hook or a fast transition",
     "duration": 0.6,
     "gain": 0.55,
-    "license": "Synthesized with FFmpeg by this project's scripts/make_sfx.py; no third-party material."
+    "license": "Sintetizado con FFmpeg por scripts/make_sfx.py de este proyecto; sin material de terceros."
   },
   {
     "id": "swoosh_01",
@@ -15,7 +15,7 @@
     "description": "Swoosh: short bright sweep, for text sliding in",
     "duration": 0.35,
     "gain": 0.5,
-    "license": "Synthesized with FFmpeg by this project's scripts/make_sfx.py; no third-party material."
+    "license": "Sintetizado con FFmpeg por scripts/make_sfx.py de este proyecto; sin material de terceros."
   },
   {
     "id": "pop_01",
@@ -24,7 +24,7 @@
     "description": "Pop: short soft click, for a text note appearing",
     "duration": 0.14,
     "gain": 0.6,
-    "license": "Synthesized with FFmpeg by this project's scripts/make_sfx.py; no third-party material."
+    "license": "Sintetizado con FFmpeg por scripts/make_sfx.py de este proyecto; sin material de terceros."
   },
   {
     "id": "click_01",
@@ -33,7 +33,7 @@
     "description": "Click: tiny tick, for small UI-like accents",
     "duration": 0.06,
     "gain": 0.6,
-    "license": "Synthesized with FFmpeg by this project's scripts/make_sfx.py; no third-party material."
+    "license": "Sintetizado con FFmpeg por scripts/make_sfx.py de este proyecto; sin material de terceros."
   },
   {
     "id": "tick_01",
@@ -42,7 +42,7 @@
     "description": "Tick: clock tick, for countdowns",
     "duration": 0.05,
     "gain": 0.6,
-    "license": "Synthesized with FFmpeg by this project's scripts/make_sfx.py; no third-party material."
+    "license": "Sintetizado con FFmpeg por scripts/make_sfx.py de este proyecto; sin material de terceros."
   },
   {
     "id": "ding_01",
@@ -51,7 +51,7 @@
     "description": "Ding: bright bell, for a fact, a win or a correct call",
     "duration": 0.9,
     "gain": 0.45,
-    "license": "Synthesized with FFmpeg by this project's scripts/make_sfx.py; no third-party material."
+    "license": "Sintetizado con FFmpeg por scripts/make_sfx.py de este proyecto; sin material de terceros."
   },
   {
     "id": "notify_01",
@@ -60,7 +60,7 @@
     "description": "Notify: two-tone chime, for a tip or a reveal",
     "duration": 0.7,
     "gain": 0.45,
-    "license": "Synthesized with FFmpeg by this project's scripts/make_sfx.py; no third-party material."
+    "license": "Sintetizado con FFmpeg por scripts/make_sfx.py de este proyecto; sin material de terceros."
   },
   {
     "id": "coin_01",
@@ -69,7 +69,7 @@
     "description": "Coin: retro pickup, for points, loot or money",
     "duration": 0.6,
     "gain": 0.4,
-    "license": "Synthesized with FFmpeg by this project's scripts/make_sfx.py; no third-party material."
+    "license": "Sintetizado con FFmpeg por scripts/make_sfx.py de este proyecto; sin material de terceros."
   },
   {
     "id": "levelup_01",
@@ -78,7 +78,7 @@
     "description": "Level up: rising arpeggio, for a win or an upgrade",
     "duration": 0.9,
     "gain": 0.4,
-    "license": "Synthesized with FFmpeg by this project's scripts/make_sfx.py; no third-party material."
+    "license": "Sintetizado con FFmpeg por scripts/make_sfx.py de este proyecto; sin material de terceros."
   },
   {
     "id": "error_01",
@@ -87,7 +87,7 @@
     "description": "Error: double buzz, for a fail or a wrong call",
     "duration": 0.42,
     "gain": 0.4,
-    "license": "Synthesized with FFmpeg by this project's scripts/make_sfx.py; no third-party material."
+    "license": "Sintetizado con FFmpeg por scripts/make_sfx.py de este proyecto; sin material de terceros."
   },
   {
     "id": "boing_01",
@@ -96,7 +96,7 @@
     "description": "Boing: springy bounce, for a funny moment",
     "duration": 0.7,
     "gain": 0.5,
-    "license": "Synthesized with FFmpeg by this project's scripts/make_sfx.py; no third-party material."
+    "license": "Sintetizado con FFmpeg por scripts/make_sfx.py de este proyecto; sin material de terceros."
   },
   {
     "id": "laser_01",
@@ -105,7 +105,7 @@
     "description": "Laser: falling zap, for a shot or a quick cut",
     "duration": 0.35,
     "gain": 0.4,
-    "license": "Synthesized with FFmpeg by this project's scripts/make_sfx.py; no third-party material."
+    "license": "Sintetizado con FFmpeg por scripts/make_sfx.py de este proyecto; sin material de terceros."
   },
   {
     "id": "glitch_01",
@@ -114,7 +114,7 @@
     "description": "Glitch: digital stutter, to go with the glitch effect",
     "duration": 0.45,
     "gain": 0.45,
-    "license": "Synthesized with FFmpeg by this project's scripts/make_sfx.py; no third-party material."
+    "license": "Sintetizado con FFmpeg por scripts/make_sfx.py de este proyecto; sin material de terceros."
   },
   {
     "id": "shutter_01",
@@ -123,7 +123,7 @@
     "description": "Shutter: camera click, to go with a flash",
     "duration": 0.2,
     "gain": 0.55,
-    "license": "Synthesized with FFmpeg by this project's scripts/make_sfx.py; no third-party material."
+    "license": "Sintetizado con FFmpeg por scripts/make_sfx.py de este proyecto; sin material de terceros."
   },
   {
     "id": "impact_01",
@@ -132,7 +132,7 @@
     "description": "Impact: low thud, for a crash, a hit or a punch-in zoom",
     "duration": 0.8,
     "gain": 0.7,
-    "license": "Synthesized with FFmpeg by this project's scripts/make_sfx.py; no third-party material."
+    "license": "Sintetizado con FFmpeg por scripts/make_sfx.py de este proyecto; sin material de terceros."
   },
   {
     "id": "bassdrop_01",
@@ -141,7 +141,7 @@
     "description": "Bass drop: deep falling boom, for the payoff",
     "duration": 1.4,
     "gain": 0.7,
-    "license": "Synthesized with FFmpeg by this project's scripts/make_sfx.py; no third-party material."
+    "license": "Sintetizado con FFmpeg por scripts/make_sfx.py de este proyecto; sin material de terceros."
   },
   {
     "id": "heartbeat_01",
@@ -150,7 +150,7 @@
     "description": "Heartbeat: two low thumps, for tension",
     "duration": 0.8,
     "gain": 0.7,
-    "license": "Synthesized with FFmpeg by this project's scripts/make_sfx.py; no third-party material."
+    "license": "Sintetizado con FFmpeg por scripts/make_sfx.py de este proyecto; sin material de terceros."
   },
   {
     "id": "riser_01",
@@ -159,7 +159,7 @@
     "description": "Riser: rising tone, to build tension before the key moment",
     "duration": 1.2,
     "gain": 0.4,
-    "license": "Synthesized with FFmpeg by this project's scripts/make_sfx.py; no third-party material."
+    "license": "Sintetizado con FFmpeg por scripts/make_sfx.py de este proyecto; sin material de terceros."
   },
   {
     "id": "suspense_01",
@@ -168,7 +168,7 @@
     "description": "Suspense: dark drone, under a tense stretch",
     "duration": 3.0,
     "gain": 0.5,
-    "license": "Synthesized with FFmpeg by this project's scripts/make_sfx.py; no third-party material."
+    "license": "Sintetizado con FFmpeg por scripts/make_sfx.py de este proyecto; sin material de terceros."
   },
   {
     "id": "music_chill_01",
@@ -177,7 +177,7 @@
     "description": "Chill: slow lo-fi bed with a soft kick (80 BPM)",
     "duration": 12.0,
     "gain": 0.24,
-    "license": "Synthesized with FFmpeg by this project's scripts/make_sfx.py; no third-party material."
+    "license": "Sintetizado con FFmpeg por scripts/make_sfx.py de este proyecto; sin material de terceros."
   },
   {
     "id": "music_energy_01",
@@ -186,7 +186,7 @@
     "description": "Energy: driving electronic bed (128 BPM)",
     "duration": 7.5,
     "gain": 0.2,
-    "license": "Synthesized with FFmpeg by this project's scripts/make_sfx.py; no third-party material."
+    "license": "Sintetizado con FFmpeg por scripts/make_sfx.py de este proyecto; sin material de terceros."
   },
   {
     "id": "music_ambient_01",
@@ -195,7 +195,7 @@
     "description": "Ambient: calm pad without drums",
     "duration": 16.0,
     "gain": 0.3,
-    "license": "Synthesized with FFmpeg by this project's scripts/make_sfx.py; no third-party material."
+    "license": "Sintetizado con FFmpeg por scripts/make_sfx.py de este proyecto; sin material de terceros."
   },
   {
     "id": "record_scratch_cc0",

@@ -1,4 +1,4 @@
-/* Kairos Studio: panel. Views for videos, jobs, clips and the queue. The editor lives in editor.js. */
+/* Clipper: panel. Vistas de videos, trabajos, clips y cola. El editor vive en editor.js. */
 const $ = (s, e = document) => e.querySelector(s);
 const $$ = (s, e = document) => [...e.querySelectorAll(s)];
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -58,10 +58,10 @@ function toast(text, kind = '') {
 let tab = 'dashboard', cfg = {}, who = '', timer = null, clipFilter = 'all', addMode = 'url', viewEpoch = 0;
 try { who = localStorage.who || '' } catch { }
 
-const TABS = [['dashboard', 'Inicio', 'home'], ['projects', 'Proyectos', 'grid'], ['videos', 'Videos', 'film'], ['resources', 'Recursos', 'folder'], ['jobs', 'Trabajos', 'pulse'], ['clips', 'Clips', 'grid'], ['queue', 'Cola de aprobación', 'inbox'], ['apis', 'APIs y modelos', 'spark'], ['settings', 'Ajustes', 'gear']];
+const TABS = [['dashboard', 'Inicio', 'home'], ['projects', 'Proyectos', 'grid'], ['videos', 'Videos', 'film'], ['video-projects', 'Montajes de video', 'cut'], ['resources', 'Recursos', 'folder'], ['jobs', 'Trabajos', 'pulse'], ['clips', 'Clips', 'grid'], ['queue', 'Cola de aprobación', 'inbox'], ['apis', 'APIs y modelos', 'spark'], ['settings', 'Ajustes', 'gear']];
 function nav(counts = {}) {
   const button = ([k,l,i]) => `<button class="${tab == k ? 'on' : ''}" onclick="go('${k}')" title="${l}" aria-label="${l}" ${tab == k ? 'aria-current="page"' : ''}>${icon(i)}<span class="l">${l}</span>${k == 'queue' && counts.q ? `<span class="badge">${counts.q}</span>` : ''}</button>`;
-  $('#nav').innerHTML = `<section class="nav-section"><div class="nav-group-label">Espacio de trabajo</div>${TABS.slice(0,2).map(button).join('')}</section><section class="nav-section"><div class="nav-group-label">Contenido del proyecto</div>${TABS.slice(2,-2).map(button).join('')}</section>`;
+  $('#nav').innerHTML = `<section class="nav-section"><div class="nav-group-label">Espacio de trabajo</div>${TABS.slice(0,2).map(button).join('')}</section><section class="nav-section"><div class="nav-group-label">Contenido del proyecto</div>${TABS.slice(2,-2).filter(([k])=>cfg.desktop || k!=='video-projects').map(button).join('')}</section>`;
   $('#utilityNav').innerHTML = TABS.slice(-2).map(button).join('') + `<button onclick="quickProvider()" title="Cambiar proveedor de IA" aria-label="Cambiar proveedor de IA">${icon('spark')}<span class="l">Cambiar IA</span></button>`;
   if (matchMedia('(min-width: 768px)').matches) $('#nav button.on')?.scrollIntoView({block:'nearest'});
 }
@@ -70,7 +70,9 @@ function route() {
   viewEpoch++;
   Shell.close();
   closeModal();
+  VideoEditor.close();
   const [view, arg] = location.hash.replace(/^#\/?/, '').split('/');
+  if (view == 'video-editor' && arg && cfg.desktop) { Editor.close();tab='video-editor';clearInterval(timer);VideoEditor.open(arg);return; }
   if (view == 'editor' && arg) { tab = 'editor'; clearInterval(timer); Editor.open(arg); return }
   if (view == 'select' && arg) { Editor.close(); tab = 'jobs'; clearInterval(timer); nav(); loadingView(); vSelect(arg).catch(showViewError); return }
   Editor.close();
@@ -88,7 +90,7 @@ async function render() {
   const q = await api('/api/queue').catch(() => []);
   if (epoch !== viewEpoch || currentProject !== requestedProject || tab !== requestedTab) return;
   nav({ q: q.length });
-  try { await ({ dashboard: vDashboard, projects: vProjects, resources: vResources, videos: vVideos, jobs: vJobs, clips: vClips, queue: vQueue, apis: vApis, settings: vSettings })[tab](q); }
+  try { await ({ dashboard: vDashboard, projects: vProjects, resources: vResources, videos: vVideos, 'video-projects': vVideoProjects, jobs: vJobs, clips: vClips, queue: vQueue, apis: vApis, settings: vSettings })[tab](q); }
   catch (error) { if (epoch === viewEpoch) throw error; }
   finally { if (epoch === viewEpoch) $('#main').removeAttribute('aria-busy'); }
 }

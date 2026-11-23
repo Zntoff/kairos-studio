@@ -20,7 +20,7 @@ public partial class Store
         try { if (File.Exists(_file)) db = JsonNode.Parse(File.ReadAllText(_file)) as JsonObject; } catch (JsonException) { File.Copy(_file, _file + ".dañado", true); }
         _db = db ?? [];
         bool changed = false;
-        foreach (var k in new[] { "sources", "clips", "jobs", "projects", "resources" }) if (_db[k] is not JsonArray) { _db[k] = new JsonArray(); changed = true; }
+        foreach (var k in new[] { "sources", "clips", "jobs", "projects", "resources", "video_projects" }) if (_db[k] is not JsonArray) { _db[k] = new JsonArray(); changed = true; }
         if (_db["settings"] is not JsonObject) _db["settings"] = new JsonObject();
         if (!Arr("projects").Any(p => J.S(p!["id"]) == DefaultProject))
         { Arr("projects").Add(new JsonObject { ["id"] = DefaultProject, ["name"] = "General", ["description"] = "Biblioteca inicial", ["created_at"] = Now() }); changed = true; }

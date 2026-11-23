@@ -1,7 +1,7 @@
-"""Video downloads from a URL (YouTube, Twitch, Kick) with yt-dlp.
+"""Descarga de videos desde una URL (YouTube, Twitch, Kick) con yt-dlp.
 
-Downloading grants no rights: the video still goes through the rights registry
-(`rights.register_source`), which requires a status and evidence before it enters the pipeline."""
+Descargar no da derechos: el video sigue pasando por el registro de derechos
+(`rights.register_source`), que exige estado y evidencia antes de entrar al pipeline."""
 from __future__ import annotations
 
 import os
@@ -31,7 +31,7 @@ def check_url(url: str) -> str:
 
 
 def fetch(url: str, dest_dir: Path, log: Callable[[str], None] = lambda _: None) -> tuple[Path, dict]:
-    """Download the video to `dest_dir` and return (path, metadata: title, uploader, id)."""
+    """Descarga el video a `dest_dir` y devuelve (ruta, metadatos: title, uploader, id)."""
     url = check_url(url)
     try:
         import yt_dlp

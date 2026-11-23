@@ -40,3 +40,8 @@ Thumbs.db
 *.key
 *.pem
 **/signing-metadata.json
+*.sqlite
+*.sqlite3
+ui-language.json
+library.json
+!assets/sfx/library.json

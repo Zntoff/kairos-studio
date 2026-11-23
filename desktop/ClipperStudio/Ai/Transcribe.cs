@@ -76,8 +76,9 @@ public static class Whisper
         int Run(bool noGpu)
         {
             var psi = new ProcessStartInfo(cli) { RedirectStandardError = true, RedirectStandardOutput = true, UseShellExecute = false, CreateNoWindow = true, WorkingDirectory = Path.GetDirectoryName(cli)! };
-            foreach (var a in new[] { "-m", ModelPath, "-f", wav, "-l", string.IsNullOrEmpty(language) ? "auto" : language, "-ojf", "-of", outBase, "-ml", "1", "-sow", "-pp", "-t", Math.Clamp(Environment.ProcessorCount / 2, 1, 8).ToString(), "-bs", fast ? "1" : "5", "-bo", fast ? "1" : "5" })
+            foreach (var a in new[] { "-m", ModelPath, "-f", wav, "-l", string.IsNullOrEmpty(language) ? "auto" : language, "-ojf", "-of", outBase, "-ml", fast ? "1" : "0", "-sow", "-pp", "-t", Math.Clamp(Environment.ProcessorCount / 2, 1, 8).ToString(), "-bs", fast ? "1" : "5", "-bo", fast ? "1" : "5" })
                 psi.ArgumentList.Add(a);
+            if (!fast) { psi.ArgumentList.Add("-dtw"); psi.ArgumentList.Add("small"); }
             if (noGpu) psi.ArgumentList.Add("-ng");
             using var p = Process.Start(psi)!;
             int lastPct = -10;
@@ -104,19 +105,51 @@ public static class Whisper
         log($"    transcripción terminada en {clock.Elapsed.TotalSeconds:0} s ({duration / Math.Max(1, clock.Elapsed.TotalSeconds):0.0}× tiempo real)");
 
         var doc = JsonNode.Parse(File.ReadAllText(json))!;
-        var words = new List<Word>();
-        foreach (var t in J.Items(doc["transcription"]))
-        {
-            var text = J.S(t["text"]);
-            if (text.Trim() == "" || Regex.IsMatch(text.Trim(), @"^\[.*\]$|^\(.*\)$")) continue;   // [MUSIC], (laughs)
-            double s = J.D(t["offsets"]?["from"]) / 1000, e = J.D(t["offsets"]?["to"]) / 1000;
-            if (!text.StartsWith(' ') && words.Count > 0 && s - words[^1].End < 0.15)
-                words[^1] = words[^1] with { W = words[^1].W + text, End = Math.Max(words[^1].End, e) };   // a piece of the previous word
-            else words.Add(new Word(text.Trim(), s, Math.Max(e, s + 0.05)));
-        }
+        var words = ParseWords(doc, duration);
         var lang = J.S(doc["result"]?["language"]);
         if (lang == "") lang = language ?? "und";
         return words.Count == 0 ? Silent(duration, lang) : Build(lang, duration, words);
+    }
+
+    public static List<Word> ParseWords(JsonNode doc, double duration)
+    {
+        var words = new List<Word>();
+        foreach (var t in J.Items(doc["transcription"]))
+        {
+            // Full JSON contains acoustic token offsets. Segment boundaries are
+            // not word boundaries, especially with multibyte Spanish BPE tokens.
+            var tokens = J.Items(t["tokens"]).Where(x => !J.S(x["text"]).StartsWith("[_"))
+                .Where(x => x["offsets"] is JsonObject && J.D(x["offsets"]?["from"], -1) >= 0).ToList();
+            foreach (var token in tokens.Count > 0 ? tokens : new List<JsonNode> { t })
+            {
+                string text = J.S(token["text"]);
+                if (string.IsNullOrWhiteSpace(text) || Regex.IsMatch(text.Trim(), @"^\[.*\]$|^\(.*\)$")) continue;
+                double s = Math.Clamp(J.D(token["offsets"]?["from"]) / 1000, 0, duration);
+                double e = Math.Clamp(J.D(token["offsets"]?["to"]) / 1000, s, duration);
+                // DTW is measured in 10 ms ticks, unlike JSON offsets (ms).
+                // It follows the acoustic attention; offsets can still be a
+                // heuristic distribution over a whole sentence, including silence.
+                double anchor = J.D(token["t_dtw"], -1);
+                if (anchor >= 0) { s = Math.Clamp(anchor / 100 - .04, 0, duration); e = Math.Min(duration, s + .18); }
+                if (e <= s) continue;
+                // DTW may assign the same acoustic frame to adjacent short
+                // words. Keep both spellings together rather than dropping the
+                // first word when its interval would otherwise become empty.
+                if (anchor >= 0 && words.Count > 0 && s <= words[^1].Start + .005)
+                {
+                    words[^1] = words[^1] with { W = words[^1].W + text, End = Math.Max(words[^1].End, e) };
+                    continue;
+                }
+                if (!char.IsWhiteSpace(text[0]) && words.Count > 0)
+                    words[^1] = words[^1] with { W = words[^1].W + text, End = Math.Max(words[^1].End, e) };
+                else
+                {
+                    if (words.Count > 0 && words[^1].End > s) words[^1] = words[^1] with { End = Math.Max(words[^1].Start, s) };
+                    words.Add(new Word(text.Trim(), s, e));
+                }
+            }
+        }
+        return words.Where(w => w.End > w.Start).ToList();
     }
 
     public static JsonObject Build(string language, double duration, List<Word> words)

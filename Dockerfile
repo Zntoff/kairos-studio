@@ -1,18 +1,19 @@
-FROM python:3.12-slim
-
-# Links the published image (ghcr.io/zntoff/kairos-studio) to this repository.
-LABEL org.opencontainers.image.title="Kairos Studio" \
-      org.opencontainers.image.description="AI clipping that turns long videos into vertical shorts. Web panel on port 8000." \
-      org.opencontainers.image.source="https://github.com/Zntoff/kairos-studio" \
-      org.opencontainers.image.licenses="Apache-2.0"
+FROM ubuntu:24.04
 
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends ffmpeg fontconfig fonts-inter \
+    && apt-get upgrade -y \
+    && apt-get install -y --no-install-recommends ffmpeg fontconfig fonts-inter ca-certificates python3 python3-venv \
     && rm -rf /var/lib/apt/lists/*
 
+RUN python3 -m venv /opt/kairos-venv
+ENV PATH="/opt/kairos-venv/bin:$PATH"
+
 WORKDIR /app
-COPY . .
-# Editable install: the code looks for assets/, config/ and the prompts next to the package.
+COPY pyproject.toml LICENSE NOTICE ./
+COPY clipper/ ./clipper/
+COPY assets/ ./assets/
+COPY config/ ./config/
+# Instalación editable: el código busca assets/, config/ y los prompts junto al paquete.
 RUN pip install --no-cache-dir --upgrade "pip>=26.2" \
     && pip install --no-cache-dir -e ".[postgres]"
 

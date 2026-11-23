@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Try the Kairos Studio Short workflow with a sample project, from source video to vertical MP4.">
+  <title>Guided demo | Kairos Studio</title>
+  <link rel="icon" href="brand/favicon.svg">
+  <link rel="stylesheet" href="guided-demo.css">
+  <script src="guided-demo.js" defer></script>
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="../" aria-label="Kairos Studio workspace"><img src="brand/logo-white.svg" alt="Kairos Studio" width="148" height="28"></a>
+    <a class="quiet" href="../">Back to workspace</a>
+  </header>
+  <main>
+    <section class="intro" aria-labelledby="title">
+      <p class="tag">Guided demo</p>
+      <h1 id="title">From source video <em>to Short.</em></h1>
+      <p>Try the same steps as in Kairos Studio with a sample project. Pick a moment, style its captions and download a vertical MP4.</p>
+    </section>
+    <nav class="steps" aria-label="Demo steps">
+      <ol>
+        <li><button data-step="0" aria-current="step"><span>01</span> Import</button></li>
+        <li><button data-step="1" disabled><span>02</span> Choose a moment</button></li>
+        <li><button data-step="2" disabled><span>03</span> Edit</button></li>
+        <li><button data-step="3" disabled><span>04</span> Review &amp; export</button></li>
+      </ol>
+    </nav>
+    <section class="studio" aria-labelledby="studio-title">
+      <header class="studio-header">
+        <div><span class="project-dot" aria-hidden="true"></span><h2 id="studio-title">Above the Cloudline</h2></div>
+        <span class="muted">Sample project</span>
+      </header>
+      <div class="workbench">
+        <div class="preview" id="preview">
+          <video id="player" src="demo-source.mp4" poster="demo-poster.jpg" controls playsinline preload="metadata" aria-label="Sample source video">
+            <track id="source-captions" kind="captions" src="demo-source.vtt" srclang="en" label="English">
+          </video>
+          <div class="media-info"><span id="media-name">Ridge hike.mp4</span><span id="media-format">16:9 · 00:16</span></div>
+          <div class="timeline" id="timeline" hidden>
+            <label for="scrubber">Timeline</label>
+            <input type="range" id="scrubber" min="0" max="8" value="0" step=".1">
+            <output id="time" for="scrubber">0:00 / 0:08</output>
+          </div>
+        </div>
+        <div class="inspector">
+          <section data-panel="0" aria-labelledby="import-title">
+            <p class="tag">Library</p>
+            <h3 id="import-title" tabindex="-1">Import a source</h3>
+            <p>In the app, add a local file or a supported video link and record your permission to use it. This demo includes a sample you can import right away.</p>
+            <div class="source-card"><strong>Ridge hike.mp4</strong><span>16 seconds · Demo media</span></div>
+            <button class="primary" id="import">Import sample video</button>
+          </section>
+          <section data-panel="1" aria-labelledby="moment-title" hidden>
+            <p class="tag">Generate a Short</p>
+            <h3 id="moment-title" tabindex="-1">Choose a moment</h3>
+            <p>Kairos suggests moments from the source. Here are two prepared examples. Select one to preview its start in the source video.</p>
+            <fieldset class="choices">
+              <legend class="sr-only">Candidate moment</legend>
+              <label><input type="radio" name="moment" value="ridge" checked><span><strong>On the ridge</strong><small>00:00–00:08</small></span></label>
+              <label><input type="radio" name="moment" value="clouds"><span><strong>Above the clouds</strong><small>00:08–00:16</small></span></label>
+            </fieldset>
+            <button class="primary" id="generate">Generate sample Short</button>
+          </section>
+          <section data-panel="2" aria-labelledby="edit-title" hidden>
+            <p class="tag">Shorts editor</p>
+            <h3 id="edit-title" tabindex="-1">Style your captions</h3>
+            <p>Switch styles and scrub the 9:16 preview. The full editor also has controls for framing, color and audio.</p>
+            <fieldset class="choices">
+              <legend class="sr-only">Caption style</legend>
+              <label><input type="radio" name="style" value="clean" checked><span><strong>Clean</strong><small>White captions</small></span></label>
+              <label><input type="radio" name="style" value="highlight"><span><strong>Highlight</strong><small>Yellow emphasis</small></span></label>
+            </fieldset>
+            <button class="primary" id="review">Review Short</button>
+          </section>
+          <section data-panel="3" aria-labelledby="review-title" hidden>
+            <p class="tag">Review &amp; export</p>
+            <h3 id="review-title" tabindex="-1">Check the final Short</h3>
+            <p>Play the vertical preview, then approve it to unlock the MP4. You can return to the editor to change the caption style.</p>
+            <div class="source-card"><strong id="review-name"></strong><span id="review-details"></span></div>
+            <button class="primary" id="approve">Approve Short</button>
+            <a class="primary" id="download" download hidden>Download MP4</a>
+          </section>
+        </div>
+      </div>
+      <footer class="studio-footer"><p id="status" role="status">Ready to import sample video.</p><button class="quiet" id="reset" hidden>Restart demo</button></footer>
+    </section>
+    <p class="demo-note">The demo uses prepared moments and sample exports. Everything runs in this browser without an upload or API key.</p>
+  </main>
+</body>
+</html>

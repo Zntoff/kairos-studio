@@ -20,7 +20,18 @@ public record Geometry(int FgH, int FgY, int CaptionY, int TopY, int SafeWidth, 
 
 public static class Ass
 {
-    public const int W = 1080, H = 1920, SafeTop = SafeArea.Top, SafeBottom = SafeArea.BottomMargin, SafeSide = SafeArea.Left;
+    static readonly AsyncLocal<(int Width,int Height)?> Canvas = new();
+    public static int W => Canvas.Value?.Width ?? 1080;
+    public static int H => Canvas.Value?.Height ?? 1920;
+    sealed class CanvasScope((int Width,int Height)? previous) : IDisposable
+    { public void Dispose() => Canvas.Value=previous; }
+    public static IDisposable UseCanvas(int width,int height)
+    {
+        var scope=new CanvasScope(Canvas.Value);Canvas.Value=(width,height);return scope;
+    }
+    public static int SafeTop => SafeArea.Top;
+    public static int SafeBottom => SafeArea.BottomMargin;
+    public static int SafeSide => SafeArea.Left;
     public const int TextMargin = 60, TextBoxPad = 14;
     const string White = "&H00FFFFFF", Yellow = "&H0000E5FF", NoteBox = "&H38181818";
     static readonly ConcurrentDictionary<string, GlyphTypeface> Faces = new();
@@ -103,6 +114,7 @@ public static class Ass
 
     public static Geometry Geom(JsonNode edl, int srcW, int srcH)
     {
+        using var safeScope = SafeArea.Use(edl);
         var g = Geom(J.S(edl["layout"]), edl["captions"]?["y"] is JsonValue ? J.D(edl["captions"]!["y"]) : null, srcW, srcH);
         var source = new JsonObject { ["width"] = srcW, ["height"] = srcH };
         var faces = J.Items(edl["effects"]).Where(e => J.S(e["type"]) == "face_focus" && Ai.CreativeEdits.RegionError(e["region"]) == null);
@@ -138,6 +150,7 @@ public static class Ass
 
     public static string Build(JsonNode edl, JsonNode? track, string lang, int srcW, int srcH)
     {
+        using var safeScope = SafeArea.Use(edl);
         var g = Geom(edl, srcW, srcH);
         int cx = SafeArea.CenterX;
         double dur = J.D(edl["source"]!["end"]) - J.D(edl["source"]!["start"]);

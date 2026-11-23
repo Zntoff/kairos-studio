@@ -6,12 +6,29 @@ public record FacePlacement(int X, int Y, int Width, int Height, int InnerWidth,
 
 public static class Framing
 {
+    // Coordinates are normalized crop offsets, interpolated between timestamped visual references.
+    public static string CropExpression(JsonNode edl, string axis)
+    {
+        var points = J.Items(edl["framing"]?["track"]).OrderBy(p => J.D(p["source_time"])).ToList();
+        if (!J.B(edl["tracking_enabled"], true) || points.Count < 2) return J.F(J.D(edl["crop_" + axis], .5));
+        double start = J.D(edl["source"]?["start"]);
+        string expression = J.F(J.D(points[0][axis], .5));
+        for (int i = 1; i < points.Count; i++)
+        {
+            double a = J.D(points[i-1]["source_time"])-start, b = J.D(points[i]["source_time"])-start;
+            if (b <= a) continue;
+            double from = J.D(points[i-1][axis], .5), to = J.D(points[i][axis], .5);
+            expression += $"+({J.F(to-from)})*clip((t-({J.F(a)}))/{J.F(b-a)},0,1)";
+        }
+        return expression;
+    }
     public const string FitProfile = "canvas_contain_v2";
     public static bool NeedsRender(JsonNode clip) => clip["package_dir"] != null &&
         (J.S(clip["edl"]?["safe_area"]?["profile"]) != SafeArea.Profile ||
          J.S(clip["edl"]?["layout"]) == "gameplay_blur_bg" && J.S(clip["edl"]?["fit_profile"]) != FitProfile);
     public static bool SubjectFitsSafe(JsonNode edl, JsonNode source)
     {
+        using var safeScope = SafeArea.Use(edl);
         var region = edl["framing"]?["subject_region"];
         if (region == null) return false;
         double sw = J.D(source["width"]), sh = J.D(source["height"]), scale = Math.Max(Ass.W / sw, Ass.H / sh);
@@ -41,6 +58,7 @@ public static class Framing
         var plan = J.Obj(decision["framing"]);
         var region = plan["subject_region"];
         bool auto = input.LayoutChoice == "auto";
+        if (!auto) edl["layout"] = input.LayoutChoice;
         double sw = J.D(input.Source["width"]), sh = J.D(input.Source["height"]);
         double scale = Math.Max(Ass.W / sw, Ass.H / sh);
         double visibleW = Ass.W / scale / sw, visibleH = Ass.H / scale / sh;
@@ -48,7 +66,7 @@ public static class Framing
         bool fits = region != null && J.D(region["w"]) * scaledW <= SafeArea.Width && J.D(region["h"]) * scaledH <= SafeArea.Height;
         if (auto)
             edl["layout"] = J.S(plan["mode"]) == "subject" && fits ? "center_crop" : "gameplay_blur_bg";
-        if (J.S(edl["layout"]) == "center_crop" && region == null) edl["layout"] = "gameplay_blur_bg";
+        if (auto && J.S(edl["layout"]) == "center_crop" && region == null) edl["layout"] = "gameplay_blur_bg";
         edl["crop_y"] = .5;
         if (J.S(edl["layout"]) == "center_crop" && region != null)
         {
@@ -57,10 +75,24 @@ public static class Framing
             edl["crop_y"] = visibleH >= .99999 ? .5 : Math.Clamp((cy * scaledH - (SafeArea.Top + SafeArea.Bottom) / 2.0) / (scaledH - Ass.H), 0, 1);
             edl["framing"] = J.Clone(plan);
             fits = fits && SubjectFitsSafe(edl, input.Source);
-            // A pinned vertical format cannot make an oversized subject fit between platform overlays.
-            if (!fits) edl["layout"] = "gameplay_blur_bg";
+            // Automatic choice may prefer fit; an explicit crop must remain a crop.
+            if (auto && !fits) edl["layout"] = "gameplay_blur_bg";
         }
         var stored = (JsonObject)J.Clone(plan);
+        var track = new JsonArray();
+        foreach (var point in J.Items(plan["subject_track"]).OrderBy(p => J.D(p["frame_index"])).Take(32))
+        {
+            int index = (int)J.D(point["frame_index"], -1);
+            var r = point["region"];
+            if (index < 0 || index >= input.Frames.Count || Ai.CreativeEdits.RegionError(r) != null) continue;
+            double time = J.D(input.Candidate["start"]) + (J.D(input.Candidate["end"])-J.D(input.Candidate["start"]))*(index+.5)/input.Frames.Count;
+            double cx = J.D(r!["x"]) + J.D(r["w"])/2, cy = J.D(r["y"]) + J.D(r["h"])/2;
+            track.Add(new JsonObject { ["source_time"] = time,
+                ["x"] = visibleW >= .99999 ? .5 : Math.Clamp((cx*scaledW-SafeArea.CenterX)/(scaledW-Ass.W),0,1),
+                ["y"] = visibleH >= .99999 ? .5 : Math.Clamp((cy*scaledH-(SafeArea.Top+SafeArea.Bottom)/2.0)/(scaledH-Ass.H),0,1) });
+        }
+        stored["track"] = track;
+        edl["tracking_enabled"] = true;
         stored["note"] = J.S(edl["layout"]) == "center_crop" && !fits
             ? "No se pudo verificar el sujeto principal dentro de la zona segura del recorte vertical. Revisa el encuadre."
             : !fits ? "El video completo aprovecha el lienzo, conservando sus proporciones. Los textos y las reacciones ampliadas permanecen en la zona segura." : "Encuadre centrado en la zona segura, dejando margen para las interfaces de Shorts y Reels.";

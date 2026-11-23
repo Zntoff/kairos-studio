@@ -49,8 +49,8 @@ def main() -> None:
         details = ", ".join(f"{name}={value}" for name, value in found.items())
         raise SystemExit(f"Version declarations differ: {details}. Run scripts/set-version.py.")
     version = versions.pop()
-    if not re.fullmatch(r"\d+\.\d+\.\d+", version):
-        raise SystemExit(f"{version} is not a stable semantic version (MAJOR.MINOR.PATCH).")
+    if not re.fullmatch(r"\d+\.\d+\.\d+(?:-beta\.[1-9]\d*)?", version):
+        raise SystemExit(f"{version} is not a supported stable or beta semantic version.")
 
     readme = (ROOT / "README.md").read_text(encoding="utf-8")
     block = re.search(r"(?s)<!-- downloads:start -->.*?<!-- downloads:end -->", readme)

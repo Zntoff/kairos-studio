@@ -1,8 +1,8 @@
-# Bundled fonts
+# Fuentes incluidas
 
-All of them have free licenses and can be embedded in commercial videos.
+Todas son de licencia libre y se pueden incrustar en videos comerciales.
 
-| Font | License | Source |
+| Fuente | Licencia | Origen |
 |---|---|---|
 | Inter (Black, Bold) | SIL Open Font License 1.1 | https://github.com/rsms/inter |
 | Anton | SIL Open Font License 1.1 | https://github.com/google/fonts/tree/main/ofl/anton |
@@ -18,5 +18,5 @@ All of them have free licenses and can be embedded in commercial videos.
 | Luckiest Guy | Apache License 2.0 | https://github.com/google/fonts/tree/main/apache/luckiestguy |
 | Permanent Marker | Apache License 2.0 | https://github.com/google/fonts/tree/main/apache/permanentmarker |
 
-To add a font, copy the file here and add its entry to `fonts.json` (`family` must be the family name stored in
-the file).
+Para añadir una fuente: copia el archivo aquí y añade su entrada en `fonts.json`
+(`family` debe ser el nombre de familia que trae el archivo).

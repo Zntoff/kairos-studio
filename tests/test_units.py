@@ -72,6 +72,28 @@ def test_corrected_text_only_used_when_word_count_matches():
     assert cap.timed_cues(phrase, "The car just flew".split(), set())[0].text == "the kar flew"
 
 
+def test_caption_groups_do_not_highlight_a_word_through_a_pause():
+    phrase = [Word(w="Hola", start=.4, end=.7), Word(w="mundo", start=1.2, end=1.6)]
+    cues = cap.close_gaps(cap.timed_cues(phrase, None, set()), 2)
+    assert len(cues) == 2
+    assert cues[0].end <= 1.0
+    assert cues[1].start == 1.2
+
+
+def test_clip_alignment_preserves_source_origin_and_pauses(settings, tmp_path, monkeypatch):
+    from clipper.media import transcribe as tr
+    from clipper.schemas import Transcript, Segment
+    commands = []
+    monkeypatch.setattr(tr.ffmpeg, "run", lambda args: commands.append(args))
+    monkeypatch.setattr(tr, "transcribe", lambda *args: Transcript(language="es", duration=5, segments=[
+        Segment(id=0, start=.6, end=2.8, text="Hola mundo", words=[
+            Word(w="Hola", start=.6, end=.9), Word(w="mundo", start=2.4, end=2.8)])]))
+    transcript = tr.transcribe_clip("video.mp4", tmp_path / "clip.wav", 120, 124, settings, "es")
+    assert commands[0][1] == "119.600"
+    relative = cap.clip_words(transcript, 120, 124)
+    assert [(w.start, w.end) for w in relative] == [(.2, .5), (2, 2.4)]
+
+
 def test_spread_cues_cover_the_phrase_span():
     cues = cap.spread_cues("el auto voló sobre todo el puente", 2.0, 5.0, set())
     assert cues[0].start == 2.0 and abs(cues[-1].words[-1].end - 5.0) < 0.01
