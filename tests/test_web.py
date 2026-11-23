@@ -1,4 +1,4 @@
-"""Web panel: the routes use the same Store and the same rules as the CLI."""
+"""Panel web: las rutas usan el mismo Store y las mismas reglas que la CLI."""
 import time
 from pathlib import Path
 

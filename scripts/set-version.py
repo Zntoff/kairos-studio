@@ -7,8 +7,8 @@ ROOT = Path(__file__).resolve().parents[1]
 parser = argparse.ArgumentParser()
 parser.add_argument("version")
 args = parser.parse_args()
-if not re.fullmatch(r"\d+\.\d+\.\d+", args.version):
-    parser.error("Use a stable semantic version, e.g. 0.10.1")
+if not re.fullmatch(r"\d+\.\d+\.\d+(?:-beta\.[1-9]\d*)?", args.version):
+    parser.error("Use a stable or beta semantic version, e.g. 0.10.1 or 0.12.0-beta.11")
 updates = []
 for name, pattern, replacement in [
     ("pyproject.toml", r'(?m)^version = "[^"]+"', f'version = "{args.version}"'),
@@ -25,7 +25,7 @@ text = readme.read_text(encoding="utf-8")
 block = re.search(r"(?s)<!-- downloads:start -->.*?<!-- downloads:end -->", text)
 if not block:
     raise ValueError("README download links block is missing")
-updated = re.sub(r"(?<=/v)\d+\.\d+\.\d+|(?<=KairosStudio-)\d+\.\d+\.\d+", args.version, block[0])
+updated = re.sub(r"(?:(?<=/v)|(?<=KairosStudio-))\d+\.\d+\.\d+(?:-beta\.[1-9]\d*)?(?:-beta\.[1-9]\d*)?", args.version, block[0])
 updates.append((readme, text[:block.start()] + updated + text[block.end():]))
 for path, source in updates:
     path.write_text(source, encoding="utf-8")

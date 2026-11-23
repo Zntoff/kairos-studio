@@ -8,7 +8,7 @@ public class EditException(string message) : Exception(message);
 
 public class EditorSvc(Store store)
 {
-    public const double Pad = 60, MinDur = 3, MaxDur = 180, RecommendedMax = 90;
+    public const double Pad = 60, MinDur = 3, MaxDur = 86400, RecommendedMax = 90;
     const int TextMax = 200;
     static readonly int[] FrameHeights = [72, 120, 240, 480];
     static readonly string[] Editable = ["pending_approval", "needs_human", "approved", "rejected", "rejected_by_human", "error"];
@@ -78,7 +78,8 @@ public class EditorSvc(Store store)
         var edl = (draft?["edl"] ?? clip["edl"])!;
         var tracks = (draft?["tracks"] ?? clip["tracks"] ?? new JsonObject())!;
         double lo = Math.Min(J.D(edl["source"]!["start"]), J.D(clip["edl"]!["source"]!["start"])), hi = Math.Max(J.D(edl["source"]!["end"]), J.D(clip["edl"]!["source"]!["end"]));
-        double a = Math.Max(0, lo - Pad), b = Math.Min(J.D(src["duration"]), hi + Pad);
+        double a = 0, b = J.D(src["duration"]);
+        using var safeScope = SafeArea.Use(edl);
         int sw = (int)J.D(src["width"]), sh = (int)J.D(src["height"]);
         var fonts = new JsonObject();
         foreach (var f in Studio.Fonts.Values) fonts[f.Id] = new JsonObject { ["label"] = f.Label, ["scale"] = Studio.FontScale(f.Path) };
@@ -99,7 +100,7 @@ public class EditorSvc(Store store)
             ["requires_safe_render"] = Framing.NeedsRender(clip),
             ["source"] = new JsonObject
             {
-                ["id"] = J.S(src["id"]), ["duration"] = J.D(src["duration"]), ["width"] = sw, ["height"] = sh,
+                ["project_id"] = J.S(src["project_id"], Store.DefaultProject), ["id"] = J.S(src["id"]), ["duration"] = J.D(src["duration"]), ["width"] = sw, ["height"] = sh,
                 ["has_audio"] = J.B(src["has_audio"]), ["video_url"] = $"/api/sources/{J.S(src["id"])}/video",
             },
             ["window"] = new JsonObject { ["a"] = Math.Round(a, 3), ["b"] = Math.Round(b, 3) }, ["words"] = words,
@@ -141,14 +142,14 @@ public class EditorSvc(Store store)
 
     /// <summary>Turn what the interface sent into a valid EDL and caption tracks. Fields a person may
     /// not change (source id, languages, risk) always come from the stored clip.</summary>
-    public (JsonObject edl, JsonObject tracks) Sanitize(JsonObject clip, JsonObject src, JsonNode payload)
+    public (JsonObject edl, JsonObject tracks) Sanitize(JsonObject clip, JsonObject src, JsonNode payload, bool composition = false)
     {
         var baseEdl = clip["edl"]!;
         var raw = J.Obj(payload["edl"]);
         var langs = J.Items(baseEdl["languages"]).Select(n => J.S(n)).ToList();
         if (raw["source"]?["start"] is not JsonValue || raw["source"]?["end"] is not JsonValue) throw new EditException("Falta el rango del clip (source.start / source.end).");
         double start = Math.Max(0, J.D(raw["source"]!["start"])), end = Math.Min(J.D(src["duration"]), J.D(raw["source"]!["end"])), dur = end - start;
-        if (dur < MinDur || dur > MaxDur) throw new EditException($"El clip duraría {dur:0.0} s; debe durar entre {MinDur:0} y {MaxDur:0} s.");
+        if (dur < (composition ? .1 : MinDur) || dur > MaxDur) throw new EditException($"El clip duraría {dur:0.0} s; debe durar entre {MinDur:0} y {MaxDur:0} s.");
         bool Inside(JsonNode x) => x is JsonObject && J.D(x["t"], -1) >= 0 && J.D(x["t"], -1) < dur;
         var lib = Renderer.Library();
 
@@ -229,6 +230,10 @@ public class EditorSvc(Store store)
             ["source_language"] = J.S(baseEdl["source_language"]), ["languages"] = new JsonArray(langs.Select(l => (JsonNode)l).ToArray()),
             ["layout"] = OneOf(raw["layout"], J.S(baseEdl["layout"]), "gameplay_blur_bg", "center_crop"), ["crop_x"] = J.Num(raw["crop_x"], 0.5, 0, 1),
             ["crop_y"] = J.Num(raw["crop_y"], J.D(baseEdl["crop_y"], .5), 0, 1),
+            ["media"] = EditorMedia.Clean(store, src, raw["media"], dur),
+            ["editor_mode"] = OneOf(raw["editor_mode"], "clip", "clip", "long"),
+            ["safe_area"] = SafeArea.Clean(raw["safe_area"] ?? baseEdl["safe_area"]),
+            ["tracking_enabled"] = J.B(raw["tracking_enabled"], true),
             ["framing"] = baseEdl["framing"] == null ? null : J.Clone(baseEdl["framing"]!),
             ["hook"] = new JsonObject { ["x"] = Pos(hook,"x"), ["y"] = Pos(hook,"y"), ["text"] = CleanText(hook["text"], langs), ["duration"] = J.Num(hook["duration"], 2, 0, Math.Min(dur, 8)) },
             ["commentary"] = new JsonObject { ["mode"] = "onscreen", ["notes"] = notes },
@@ -311,8 +316,7 @@ public class EditorSvc(Store store)
         var (clip, src) = Load(clipId);
         var draft = clip["draft"] as JsonObject ?? throw new EditException("No hay cambios que renderizar.");
         JsonNode edl = draft["edl"]!, tracks = draft["tracks"]!;
-        if (J.S(edl["layout"]) == "center_crop" && edl["framing"]?["subject_region"] != null && !Framing.SubjectFitsSafe(edl, src))
-            throw new EditException("El sujeto principal queda fuera de la zona segura de Shorts/Reels, contando los zooms. Ajusta el recorte o usa Completo + fondo.");
+        using var safeScope = SafeArea.Use(edl);
         var settings = store.Settings;
         var langs = J.Items(edl["languages"]).Select(n => J.S(n)).ToList();
         string work = Paths.Dir("clips", clipId, "work");
@@ -339,11 +343,11 @@ public class EditorSvc(Store store)
             });
         }
         double dur = Renderer.Duration(edl);
-        if (dur > RecommendedMax) checks.Add(new JsonObject { ["name"] = "duration", ["status"] = "warn", ["detail"] = $"dura {dur:0.0} s; los Shorts de más de {RecommendedMax:0} s suelen retener peor" });
+        if (J.S(edl["editor_mode"]) != "long" && dur > RecommendedMax) checks.Add(new JsonObject { ["name"] = "duration", ["status"] = "warn", ["detail"] = $"dura {dur:0.0} s; los Shorts de más de {RecommendedMax:0} s suelen retener peor" });
         var review = new JsonObject { ["status"] = "needs_human", ["checks"] = checks, ["fixable"] = false, ["feedback"] = "Render terminado. Míralo antes de aprobarlo.", ["reviewer"] = "manual" };
-        bool subjectKnown = edl["framing"]?["subject_region"] != null;
+        bool subjectKnown = edl["framing"]?["subject_region"] != null && Framing.SubjectFitsSafe(edl, src);
         checks.Add(new JsonObject { ["name"] = "platform_safe_area", ["status"] = J.S(edl["layout"]) == "center_crop" && !subjectKnown ? "warn" : "pass",
-            ["detail"] = J.S(edl["layout"]) == "center_crop" && !subjectKnown ? "Textos y recuadros protegidos. Sin región principal identificada: revisa caras y acción dentro del recorte vertical." : "Zona común Shorts/Reels aplicada a textos, animaciones y recuadros. El video completo aprovecha el lienzo; revisa sus detalles bajo la interfaz de la plataforma." });
+            ["detail"] = J.S(edl["layout"]) == "center_crop" && !subjectKnown ? "Recorte vertical elegido por el usuario. No se ha verificado todo el sujeto dentro de la zona: revisa caras y acción." : "Zona común Shorts/Reels aplicada a textos, animaciones y recuadros. El video completo aprovecha el lienzo; revisa sus detalles bajo la interfaz de la plataforma." });
         edl["safe_area"] = SafeArea.Json();
         edl["fit_profile"] = Framing.FitProfile;
         store.Update("clips", clipId, ("edl", edl), ("tracks", tracks), ("draft", null), ("status", "needs_human"), ("package_dir", pkg), ("review", review),
@@ -429,7 +433,9 @@ public class EditorSvc(Store store)
     /// <summary>Peak level per 20 ms between a and b, 0..1, for the timeline's audio track.</summary>
     public JsonObject Waveform(JsonObject src, double a, double b)
     {
-        const int rate = 8000, perSecond = 50, hop = rate / perSecond;
+        int rate = Math.Clamp((int)Math.Ceiling(8000000 / Math.Max(1,b-a)), 100, 8000);
+        int hop = Math.Max(rate/50, (int)Math.Ceiling(rate*(b-a)/8000));
+        double perSecond = (double)rate/hop;
         var peaks = new JsonArray();
         if (J.B(src["has_audio"]) && b > a)
         {

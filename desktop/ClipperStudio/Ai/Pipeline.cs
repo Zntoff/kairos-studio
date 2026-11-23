@@ -206,7 +206,24 @@ public class Pipeline(Store store, AiSettings ai, EditorSvc editor)
         log($"    {J.Items(edl["effects"]).Count()} efectos visuales · {J.Items(edl["audio"]?["sfx"]).Count()} sonidos · {J.Items(edl["texts"]).Count()} textos animados");
         AddStep(jobId, "editing", clipId, m1);
         log("    [Subtítulos y traducción]");
-        var (tracks, m2) = await agents.CaptionsAsync(edl, transcript, tier, null);
+        var captionTranscript = transcript;
+        if (J.B(src["has_audio"], true) && Whisper.Ready)
+        {
+            log("    [Sincronización] alineación precisa sobre la voz del recorte");
+            double origin = Math.Max(0, J.D(edl["source"]?["start"]) - .4);
+            double end = Math.Min(J.D(src["duration"]), J.D(edl["source"]?["end"]) + .4);
+            string wav = Path.Combine(fdir, "alignment.wav");
+            Ff.Run(["-ss", J.F(origin), "-i", J.S(src["path"]), "-t", J.F(end-origin), "-vn", "-ac", "1", "-ar", "16000", "-c:a", "pcm_s16le", wav]);
+            var prefs = store.Settings;
+            captionTranscript = Whisper.Transcribe(wav, J.S(transcript["language"]), end-origin, log, fast:false,
+                cpuOnly:prefs.Device == "cpu" || prefs.Device.StartsWith("dxgi:") && Hw.Family(prefs.ResolvedEncoder) != "nvenc");
+            foreach (var seg in J.Items(captionTranscript["segments"]))
+            {
+                seg["start"] = J.D(seg["start"]) + origin; seg["end"] = J.D(seg["end"]) + origin;
+                foreach (var w in J.Items(seg["words"])) { w["start"] = J.D(w["start"]) + origin; w["end"] = J.D(w["end"]) + origin; }
+            }
+        }
+        var (tracks, m2) = await agents.CaptionsAsync(edl, captionTranscript, tier, null);
         if (m2 != null) AddStep(jobId, "captions", clipId, m2);
         log("    [Títulos y metadata]");
         var (meta, m3) = await agents.MetadataAsync(edl, transcript, J.S(src["credit"]) is { Length: > 0 } c ? c : null, tier, null);

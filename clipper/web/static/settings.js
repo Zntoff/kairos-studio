@@ -1,4 +1,4 @@
-/* Kairos Studio: Settings. AI provider (Claude, OpenAI, Gemini…), each person's API key, usage and tools. */
+/* Kairos Studio: Ajustes. Proveedor de IA (Claude, OpenAI, Gemini…), la API key de cada persona, consumo y herramientas. */
 const usd = n => n == null ? '—' : '$' + n.toLocaleString(I18n.locale, { minimumFractionDigits: n < 100 ? 2 : 0, maximumFractionDigits: n < 1 ? 4 : 2 });
 const num = n => (n || 0).toLocaleString(I18n.locale);
 const short = n => n >= 1e6 ? (n / 1e6).toFixed(2) + ' M' : n >= 1e3 ? (n / 1e3).toFixed(1) + ' k' : String(n || 0);

@@ -1,4 +1,4 @@
-/* Kairos Studio: panel and editor. No external dependencies. */
+/* Clipper: panel y editor. Sin dependencias externas. */
 :root{
   --bg:#000;--panel:#0a0a0a;--panel2:#101010;--panel3:#171717;--line:#1c1c1c;--line2:#2a2a2a;
   --tx:#fafafa;--mut:#8c8c8c;--dim:#5a5a5a;
@@ -335,3 +335,7 @@ input[type=color]{padding:2px;height:34px;cursor:pointer}
 .pv.impact b{color:#FF4040}.pv.comic b{color:#FFD400}.pv.pixel b{color:#3DFF7A}.pv.pixel{font-family:ui-monospace,Consolas,monospace}
 .pv.soft b{color:#FF8AD8}.pv.neon{-webkit-text-stroke:2px #FF2BD6;text-shadow:0 0 6px #FF2BD6}.pv.neon b{color:#5CF2FF}
 .selside .opt.c4{grid-template-columns:repeat(3,minmax(0,1fr))}
+
+/* Imported project media occupy independent timeline lanes. */
+.it.media{background:#356f82;color:#fff}
+.ed-tabs{overflow-y:auto;min-height:0}

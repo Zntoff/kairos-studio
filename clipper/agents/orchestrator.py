@@ -144,11 +144,19 @@ class Orchestrator:
                                      feedback=feedback, previous=previous, revision=revision)))
             self.store.update_clip(clip_id, status="edited", edl=edl.model_dump())
 
+            caption_tr = tr
+            job_options = self.store.get_job(job_id)["options"]
+            if source.has_audio and not self.ctx.llm.offline and not job_options.get("transcript"):
+                from ..media.transcribe import transcribe_clip
+                self.log("    [Sincronización] alineando la voz del recorte seleccionado")
+                caption_tr = transcribe_clip(source.path, work / tag / "alignment.wav",
+                                             edl.source.start, edl.source.end, self.s, tr.language)
+
             # Captions and Titles/metadata do not depend on each other: run them side by side.
             self.log("    [Subtítulos] + [Títulos y metadata] en paralelo")
             with ThreadPoolExecutor(max_workers=2) as pool:
                 f_cap = pool.submit(self.step, job_id, clip_id, "captions", f"captions:{tag}", CaptionResult,
-                                    lambda: self.captions.run(edl, tr))
+                                    lambda: self.captions.run(edl, caption_tr))
                 f_meta = pool.submit(self.step, job_id, clip_id, "metadata", f"metadata:{tag}", MetadataSet,
                                      lambda: self.metadata.run(edl, tr, source.credit))
                 caps, meta = f_cap.result(), f_meta.result()

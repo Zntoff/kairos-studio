@@ -59,9 +59,9 @@ guarantee immediate SmartScreen reputation and doesn't replace a license review.
   check, Python tests on Linux, and the desktop build and integration tests on Windows.
 - [`release.yml`](../.github/workflows/release.yml) runs when a `vX.Y.Z` tag is pushed. It rejects tags that are
   not on `main` or don't match the version and a `CHANGELOG.md` section, builds Windows and Docker, runs the tests
-  and attaches the three packages and a combined `SHA256SUMS.txt` to a **draft release** in the `production`
+  audits secrets and dependencies, and attaches the three packages and a combined `SHA256SUMS.txt` to a **draft release** in the `production`
   environment. On a tag it also publishes the Docker image to GitHub Packages as
-  `ghcr.io/zntoff/kairos-studio:VERSION` and `:latest`. It can also be run manually to get the packages as
+  `ghcr.io/zntoff/kairos-studio:VERSION`. Only stable releases update `:latest`. It can also be run manually to get the packages as
   workflow artifacts, without releasing.
 
 The default workflow builds Windows unsigned and never publishes on its own; it has no access to certificates or

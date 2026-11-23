@@ -19,9 +19,11 @@ public partial class Store
             var clips=List("clips").Where(c=>jobIds.Contains(J.S(c["job_id"])) || sourceIds.Contains(J.S(c["edl"]?["source"]?["id"])) || project&&J.S(c["project_id"])==pid || kind=="clips"&&J.S(c["id"])==id).ToList();
             var resources=List("resources").Where(r=>project?J.S(r["project_id"])==pid:kind=="resources"&&J.S(r["id"])==id).ToList();
             var clipIds=clips.Select(c=>J.S(c["id"])).ToHashSet();
+            var videos=List("video_projects").Where(v=>project?J.S(v["project_id"])==pid:kind=="video_projects"&&J.S(v["id"])==id).ToList();
+            var videoIds=videos.Select(v=>J.S(v["id"])).ToHashSet();
             var resourceIds=resources.Select(r=>J.S(r["id"])).ToHashSet();
             string trash=Paths.Dir("trash",Guid.NewGuid().ToString("N"));
-            var paths=clips.Select(c=>J.S(c["package_dir"]))
+            var paths=videos.Select(v=>Path.Combine(Paths.Data,"projects",J.S(v["project_id"]),"videos",J.S(v["id"]))).Concat(clips.Select(c=>J.S(c["package_dir"])))
                 .Concat(sources.Select(s=>J.S(s["path"])))
                 .Concat(resources.Select(r=>Path.Combine(Paths.Data,"projects",J.S(r["project_id"]),"resources",J.S(r["id"])+J.S(r["extension"]))))
                 .Where(p=>p!="").Distinct(StringComparer.OrdinalIgnoreCase).ToList();
@@ -54,10 +56,11 @@ public partial class Store
                 }
                 var manifest=new JsonObject { ["kind"]=kind,["item"]=J.Clone(item),["sources"]=new JsonArray(sources.Select(s=>(JsonNode)J.Clone(s)).ToArray()),
                     ["jobs"]=new JsonArray(jobs.Select(j=>(JsonNode)J.Clone(j)).ToArray()),["clips"]=new JsonArray(clips.Select(c=>(JsonNode)J.Clone(c)).ToArray()),
+                    ["video_projects"]=new JsonArray(videos.Select(v=>(JsonNode)J.Clone(v)).ToArray()),
                     ["resources"]=new JsonArray(resources.Select(r=>(JsonNode)J.Clone(r)).ToArray()),
                     ["files"]=new JsonArray(moved.Select(p=>(JsonNode)new JsonObject{["original"]=p.Original,["trash"]=p.Target}).ToArray())};
                 File.WriteAllText(Path.Combine(trash,"manifest.json"),manifest.ToJsonString(J.Pretty));
-                foreach(var (table,ids) in new[]{("sources",sourceIds),("jobs",jobIds),("clips",clipIds),("resources",resourceIds),("projects",project?new HashSet<string>{id}:new HashSet<string>())})
+                foreach(var (table,ids) in new[]{("sources",sourceIds),("jobs",jobIds),("clips",clipIds),("resources",resourceIds),("video_projects",videoIds),("projects",project?new HashSet<string>{id}:new HashSet<string>())})
                     foreach(var row in Arr(table).Where(r=>ids.Contains(J.S(r?["id"]))).ToList())Arr(table).Remove(row);
                 Save();
             }

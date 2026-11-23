@@ -113,7 +113,18 @@ public static class CaptionKit
     public static List<JsonObject> TimedCues(List<Word> phrase, List<string>? tokens, HashSet<string> highlights)
     {
         var texts = tokens != null && tokens.Count == phrase.Count ? tokens : phrase.Select(w => w.W).ToList();
-        return Chunk(texts).Select(g => Cue(g.Select(i => (texts[i], phrase[i].Start, phrase[i].End, highlights.Contains(Norm(texts[i])))))).ToList();
+        var groups = new List<List<int>>();
+        foreach (var group in Chunk(texts))
+        {
+            var current = new List<int>();
+            foreach (int i in group)
+            {
+                if (current.Count > 0 && phrase[i].Start - phrase[current[^1]].End > .25) { groups.Add(current); current = []; }
+                current.Add(i);
+            }
+            if (current.Count > 0) groups.Add(current);
+        }
+        return groups.Select(g => Cue(g.Select(i => (texts[i], phrase[i].Start, phrase[i].End, highlights.Contains(Norm(texts[i])))))).ToList();
     }
 
     /// <summary>Cues for a translated phrase: its words share the phrase's time span in proportion to length.</summary>

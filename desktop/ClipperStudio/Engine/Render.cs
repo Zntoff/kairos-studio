@@ -87,8 +87,9 @@ public static class Renderer
         return o;
     }
 
-    public static string VideoGraph(JsonNode edl, JsonNode src, int fps, string assPath, int? vignetteInput)
+    public static string VideoGraph(JsonNode edl, JsonNode src, int fps, string assPath, int? vignetteInput, string? mediaGraph = null)
     {
+        using var safeScope = SafeArea.Use(edl);
         int W = Ass.W, H = Ass.H;
         var g = Ass.Geom(edl, (int)J.D(src["width"]), (int)J.D(src["height"]));
         var m = Motion(edl);
@@ -110,7 +111,7 @@ public static class Renderer
         }
         else
         {
-            var crop = $"scale={W}:{H}:force_original_aspect_ratio=increase,crop={W}:{H}:(iw-{W})*{N(J.D(edl["crop_x"], 0.5))}:(ih-{H})*{N(J.D(edl["crop_y"], 0.5))}";
+            var crop = $"scale={W}:{H}:force_original_aspect_ratio=increase,crop={W}:{H}:x='(iw-{W})*({Framing.CropExpression(edl, "x")})':y='(ih-{H})*({Framing.CropExpression(edl, "y")})'";
             if (m is { } mm) crop += $",scale={W * 3 / 2}:{H * 3 / 2}:flags=bicubic,{Zoompan(mm, W, H, fps)}";
             graph.Add($"{input}fps={fps},setsar=1,{crop}[v0]");
         }
@@ -131,6 +132,7 @@ public static class Renderer
             graph.Add($"[{picture}][face{i}]overlay=x='{box.X}-80*(1-clip((t-{N(a)})/0.18,0,1))':y={box.Y}:enable='between(t,{N(a)},{N(b)})':eof_action=pass[focus{i}]");
             picture = $"focus{i}";
         }
+        if (mediaGraph != null) { graph.Add(mediaGraph.Replace("[v0]", $"[{picture}]")); picture = "mediaPicture"; }
         var grade = Studio.ColorFilter(edl["color"]);
         List<string> pre = grade != null ? [grade] : [];
         var tail = TimedFilters(edl);
@@ -166,7 +168,7 @@ public static class Renderer
         return map;
     }
 
-    public static (List<string> inputs, string graph, string label) MixGraph(JsonNode edl, bool hasAudio, int firstExtraInput)
+    public static (List<string> inputs, string graph, string label) MixGraph(JsonNode edl, bool hasAudio, int firstExtraInput, string voiceInput = "[0:a]")
     {
         var lib = Library();
         double dur = Duration(edl);
@@ -176,7 +178,7 @@ public static class Renderer
         if (hasAudio)
         {
             var enhance = J.B(au["voice_enhance"]) ? "highpass=f=85,acompressor=threshold=-20dB:ratio=3:attack=8:release=160:makeup=2," : "";
-            graph.Add($"[0:a]{Fmt},{enhance}volume={N(J.D(au["voice_gain"], 1))},afade=t=in:d=0.04,afade=t=out:st={N(Math.Max(0, dur - 0.08))}:d=0.08[voice]");
+            graph.Add($"{voiceInput}{Fmt},{enhance}volume={N(J.D(au["voice_gain"], 1))},afade=t=in:d=0.04,afade=t=out:st={N(Math.Max(0, dur - 0.08))}:d=0.08[voice]");
         }
         else
         {
@@ -259,6 +261,15 @@ public static class Renderer
         bool hasAudio = J.B(src["has_audio"]);
         var (audioInputs, aGraph, aOut) = MixGraph(edl, hasAudio, vignetteInput == null ? 1 : 2);
         extra.AddRange(audioInputs);
+        var mediaFilters = new List<string>();
+        int mediaStart = 1 + extra.Count(x => x == "-i");
+        var media = EditorMedia.Compose(edl, "v0", aOut, mediaStart, mediaFilters, s.Fps);
+        extra.AddRange(media.inputs);
+        // Insert visual media after the base picture, before captions and grading.
+        var visualFilters = mediaFilters.Where(x => !x.Contains("mediaA") && !x.Contains("mediaMix")).ToList();
+        var soundFilters = mediaFilters.Where(x => x.Contains("mediaA") || x.Contains("mediaMix")).ToList();
+        string? mediaGraph = visualFilters.Count == 0 ? null : string.Join(';', visualFilters) + $";[{media.video}]null[mediaPicture]";
+        if (soundFilters.Count > 0) { aGraph += ";" + string.Join(';', soundFilters); aOut = media.audio; }
         double start = J.D(edl["source"]!["start"]), dur = Duration(edl);
         string srcPath = J.S(src["path"]), temp = Path.Combine(outDir, $"{lang}.premix.mkv"), final = Path.Combine(outDir, $"{lang}.mp4");
         var encoder = s.ResolvedEncoder;
@@ -268,7 +279,7 @@ public static class Renderer
         [
             .. decode,
             "-ss", N(start), "-t", N(dur), "-i", srcPath, .. extra,
-            "-filter_complex", $"{VideoGraph(edl, src, s.Fps, ass, vignetteInput)};{aGraph}",
+            "-filter_complex", $"{VideoGraph(edl, src, s.Fps, ass, vignetteInput, mediaGraph)};{aGraph}",
             "-map", "[v]", "-map", aOut, "-t", N(dur), "-r", s.Fps.ToString(), .. enc, "-c:a", "pcm_f32le", temp,
         ];
         // A card can refuse a session (driver, VRAM, too many encodes, a codec its decoder lacks): try the same
@@ -294,9 +305,9 @@ public static class Renderer
         // Pass B: two-pass loudness normalisation, only when the clip has real programme audio.
         double target = J.D(edl["audio"]?["normalize_lufs"], -14), tp = s.TruePeak;
         List<string> encode = ["-c:v", "copy", "-c:a", "aac", "-b:a", "192k", "-ar", "48000", "-movflags", "+faststart", final];
-        bool normalized = hasAudio && J.D(edl["audio"]?["voice_gain"], 1) > 0
-            && Measure(srcPath, -14, -1, start, dur) is { } program && program["input_i"] > -45;
-        var measured = normalized ? Measure(temp, target, tp) : null;
+        var measured = Measure(temp, target, tp);
+        bool normalized = measured != null && measured["input_i"] > -45;
+        if (!normalized) measured = null;
         if (measured != null)
         {
             var ln = $"loudnorm=I={J.F(target)}:TP={J.F(tp)}:LRA=11:measured_I={J.F(measured["input_i"])}:measured_TP={J.F(measured["input_tp"])}" +

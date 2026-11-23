@@ -7,6 +7,15 @@ the prompts and the style catalog, and always carry the same version number.
 
 ## [Unreleased]
 
+## [0.12.0-beta.11] - 2026-11-23
+
+- Create and edit full-length video projects with shared Shorts tools, reusable safe areas, an editing assistant and independent timelines and exports.
+- Enter the composition duration in seconds, minutes or hours. Adjacent clips transition without black frames in preview and export, while intentional gaps remain visible.
+- Improved word timing for transcribed Shorts, with editable subtitles and local alignment.
+- Try the guided Shorts demo under Home, from importing a sample through downloading a vertical MP4.
+- Windows packaging verifies relative paths and file hashes before distribution. Docker runs on Ubuntu 24.04 LTS with the available libxml2 security update.
+- Release builds scan Git history for secrets and audit Python, NuGet and OS dependencies before drafting the release.
+
 - Prominent direct downloads for all three formats on the repository homepage, with version-synchronized links.
 - Disable automatic AI co-author and pull request attribution in the project settings.
 

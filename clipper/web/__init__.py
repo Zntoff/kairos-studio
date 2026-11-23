@@ -1,1 +1,1 @@
-"""Local web panel to manage the platform without the command line."""
+"""Panel web local para gestionar la plataforma sin la línea de comandos."""

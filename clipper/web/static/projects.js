@@ -27,14 +27,14 @@ function switchProject(id, destination) {
   try { localStorage.setItem('clipper.project', id); } catch {}
   clearInterval(timer); closeModal(); paintProjects();
   loadingView();
-  if (destination || ['settings', 'projects', 'editor'].includes(tab) || location.hash.includes('/select/')) go(destination || 'dashboard');
+  if (destination || ['settings', 'projects', 'editor', 'video-editor'].includes(tab) || location.hash.includes('/select/')) go(destination || 'dashboard');
   else render().catch(showViewError);
 }
 async function vProjects() {
   const epoch = viewEpoch;
   await loadProjects();
   if (epoch !== viewEpoch || tab !== 'projects') return;
-  $('#main').innerHTML = `<div class="page">${head('Proyectos', 'Cada proyecto reúne sus videos, generaciones y clips.', `<button class="b" onclick="editProject()">${icon('plus')}Nuevo proyecto</button>`)}<div class="project-grid">${projects.map(p => `<article class="card project-card ${p.id === currentProject ? 'selected' : ''}"><div class="project-title">${icon('film')}<h2 data-ui-content>${esc(p.name)}</h2>${p.id === currentProject ? '<span class="pill ok">Actual</span>' : ''}</div><p class="mut" ${p.description?'data-ui-content':''}>${esc(p.description || 'Sin descripción')}</p><div class="project-counts"><span><b>${p.source_count || 0}</b> videos</span><span><b>${p.job_count || 0}</b> generaciones</span><span><b>${p.clip_count || 0}</b> clips</span><span><b>${p.resource_count || 0}</b> recursos</span></div><div class="project-actions"><button class="b" onclick="switchProject('${esc(p.id)}')">Abrir proyecto</button><button class="b g" onclick="editProject('${esc(p.id)}')">Editar</button>${p.id!=='project_default'?`<button class="b g er" onclick="deleteLibrary('projects','${p.id}')" aria-label="Delete project">${icon('trash')}Delete</button>`:''}</div></article>`).join('')}</div></div>`;
+  $('#main').innerHTML = `<div class="page">${head('Proyectos', 'Cada proyecto reúne sus videos, generaciones y clips.', `<button class="b" onclick="editProject()">${icon('plus')}Nuevo proyecto</button>`)}<div class="project-grid">${projects.map(p => `<article class="card project-card ${p.id === currentProject ? 'selected' : ''}"><div class="project-title">${icon('film')}<h2 data-ui-content>${esc(p.name)}</h2>${p.id === currentProject ? '<span class="pill ok">Actual</span>' : ''}</div><p class="mut" ${p.description?'data-ui-content':''}>${esc(p.description || 'Sin descripción')}</p><div class="project-counts"><span><b>${p.source_count || 0}</b> videos</span><span><b>${p.job_count || 0}</b> generaciones</span><span><b>${p.clip_count || 0}</b> clips</span><span><b>${p.resource_count || 0}</b> recursos</span></div><div class="project-actions">${cfg.desktop ? `<button class="b g" onclick="switchProject('${esc(p.id)}','video-projects')">Montajes de video</button>` : ''}<button class="b" onclick="switchProject('${esc(p.id)}')">Abrir proyecto</button><button class="b g" onclick="editProject('${esc(p.id)}')">Editar</button>${p.id!=='project_default'?`<button class="b g er" onclick="deleteLibrary('projects','${p.id}')" aria-label="Delete project">${icon('trash')}Delete</button>`:''}</div></article>`).join('')}</div></div>`;
 }
 function editProject(id) {
   const p = projects.find(p => p.id === id);

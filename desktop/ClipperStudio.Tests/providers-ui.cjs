@@ -30,7 +30,7 @@ const base=process.env.CLIPPER_QA_URL||'http://127.0.0.1:18765';
     await page.locator('#aiUrl').fill(url);await page.locator('#aiLoad').click();
     await page.waitForFunction(()=>document.querySelectorAll('#aiModelList option').length===2);
     for(const tier of ['fast','standard','superior'])await page.locator(`[data-assign=${tier}][data-id=local-a]`).click();
-    for(const width of [320,390,768,1280]){await page.setViewportSize({width,height:900});assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),`Model catalog overflows at ${width}`);} 
+    for(const width of [320,390,768,1280]){await page.setViewportSize({width,height:900});assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),`Model catalog overflows at ${width}`);}
     await page.locator('[data-price="fast:0"]').fill('0.2');await page.locator('[data-price="fast:1"]').fill('0.8');
     await page.locator('#aiSave').click();
     await page.locator('.ai-status').filter({hasText:'En uso · listo'}).waitFor();

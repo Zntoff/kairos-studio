@@ -12,18 +12,18 @@ const Editor = (() => {
   const tc = t => { const n = t < 0; t = Math.abs(t); return `${n ? '-' : ''}${Math.floor(t / 60)}:${String(Math.floor(t % 60)).padStart(2, '0')}.${Math.floor(t * 10 % 10)}` };
   const FONT = { caption: { f: 'ClipCaption, Inter, system-ui, sans-serif', w: 900 }, text: { f: 'ClipText, Inter, system-ui, sans-serif', w: 700 } };
   const ROW = { title: 30, text: 30, cap: 30, video: 58, fx: 26, audio: 46 };
-  const TABS = [['captions', 'Subtítulos', 'cc'], ['text', 'Texto', 'text'], ['fx', 'Efectos', 'spark'], ['color', 'Color', 'drop'], ['audio', 'Audio', 'music'], ['format', 'Formato', 'frame']];
-  const KNAME = { hook: 'Gancho', note: 'Nota', cue: 'Subtítulo', sfx: 'Sonido', fx: 'Efecto', text: 'Texto', clip: 'Clip' };
+  const TABS = [['resources', 'Recursos', 'folder'], ['captions', 'Subtítulos', 'cc'], ['text', 'Texto', 'text'], ['fx', 'Efectos', 'spark'], ['color', 'Color', 'drop'], ['audio', 'Audio', 'music'], ['format', 'Formato', 'frame']];
+  const KNAME = { hook: 'Gancho', note: 'Nota', cue: 'Subtítulo', sfx: 'Sonido', fx: 'Efecto', text: 'Texto', media: 'Recurso', clip: 'Clip' };
   Object.assign(P, {
     drop: '<path d="M12 3s6 6.2 6 10.5a6 6 0 0 1-12 0C6 9.2 12 3 12 3z"/>', layers: '<path d="M12 3l9 5-9 5-9-5 9-5zM3 13l9 5 9-5"/>',
-    reset: '<path d="M4 12a8 8 0 1 0 2.4-5.7L4 8.5M4 4v4.5h4.5"/>',
+    lock: '<rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/>', unlock: '<rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0"/>', reset: '<path d="M4 12a8 8 0 1 0 2.4-5.7L4 8.5M4 4v4.5h4.5"/>',
   });
   const COLOR_UI = [['brightness', 'Brillo', -1], ['contrast', 'Contraste', -1], ['saturation', 'Saturación', -1], ['temperature', 'Temperatura', -1], ['tint', 'Matiz', -1], ['fade', 'Velado', 0], ['vignette', 'Viñeta', 0]];
   const COLOR0 = { look: 'none', look_amount: 1, brightness: 0, contrast: 0, saturation: 0, temperature: 0, tint: 0, fade: 0, vignette: 0 };
   const TEXT0 = { x: .5, y: .3, font: 'anton', size: 80, color: '#FFFFFF', stroke: '#000000', stroke_w: 6, box: '', box_opacity: 1, opacity: 1, glow: 0, upper: false, rotate: 0, anim_in: 'fade', anim_out: 'fade' };
   const LUMA = [.2126, .7152, .0722], SEPIA = [[.393, .769, .189], [.349, .686, .168], [.272, .534, .131]];
 
-  /* ---------- catalog: fonts, color and effects (same math as media/studio.py) ---------- */
+  /* ---------- catálogo: fuentes, color y efectos (mismas cuentas que media/studio.py) ---------- */
   const fscale = id => (E.d.fonts[id] || E.d.fonts.caption || { scale: .83 }).scale;
   const font = id => ({ ...(FONT[id] || { f: `"F_${id}", Inter, system-ui, sans-serif`, w: 400 }), s: fscale(id) });
   const fxSpec = type => E.d.catalog.effects.find(e => e.id == type) || E.d.catalog.effects[0];
@@ -70,7 +70,8 @@ const Editor = (() => {
       progress: { on: false, color: '#FFE500', position: 'top', height: 12, ...(e.progress || {}) },
       capX: e.captions.x ?? null, capY: e.captions.y ?? null, capScale: e.captions.scale ?? 1,
       voice: e.audio.voice_gain ?? 1, musicGain: e.audio.music_gain ?? 1, enhance: !!e.audio.voice_enhance,
-      tracks, wordTimed,
+      tracks, wordTimed, tracking_enabled:e.tracking_enabled!==false, editor_mode: e.editor_mode || 'clip', safe_area: copy(e.safe_area?.profile === d.frame.safe.profile ? {...d.frame.safe,...e.safe_area} : d.frame.safe),
+      media: (e.media || []).map(x => ({...x,id:uid(),t:s0+x.t})),
     };
   }
   function toServer() {
@@ -84,6 +85,9 @@ const Editor = (() => {
     }
     return {
       edl: {
+        tracking_enabled:d.tracking_enabled, editor_mode: d.editor_mode, safe_area: d.safe_area,
+        media: (d.media || []).filter(x =>
+          x.t < d.end && x.t+x.duration > d.start).map(({id,...x}) => ({...x,t:rel(x.t), offset:x.offset+Math.max(0,d.start-x.t),duration:r3(Math.min(x.t+x.duration,d.end)-Math.max(x.t,d.start))})),
         source: { start: r3(d.start), end: r3(d.end) }, layout: d.layout, crop_x: d.crop_x, crop_y: d.crop_y,
         hook: { text: d.hook.text, duration: Math.min(d.hook.duration, dur), x:d.hook.x, y:d.hook.y },
         commentary: { notes: d.notes.filter(n => n.t >= d.start && n.t < d.end - .5).map(n => ({ t: rel(n.t), duration: r3(Math.min(n.duration, d.end - n.t)), text: n.text, x:n.x, y:n.y })) },
@@ -100,9 +104,9 @@ const Editor = (() => {
   }
   const track = () => E.doc.tracks[E.lang];
   const lib = sid => E.d.library.find(l => l.id == sid) || { id: sid, duration: .5, gain: .6, description: sid };
-  const listOf = k => ({ note: E.doc.notes, cue: track(), sfx: E.doc.sfx, fx: E.doc.fx, text: E.doc.texts })[k];
-  const minLen = (k, o) => k == 'fx' ? fxSpec(o.type).min : ({ cue: .1, note: .5, text: .3 })[k] || 0;
-  const maxLen = (k, o) => k == 'fx' ? fxSpec(o.type).max : k == 'hook' ? Math.min(8, E.doc.end - E.doc.start) : 1e9;
+  const listOf = k => ({ note: E.doc.notes, cue: track(), sfx: E.doc.sfx, fx: E.doc.fx, text: E.doc.texts, media: E.doc.media })[k];
+  const minLen = (k, o) => k == 'fx' ? fxSpec(o.type).min : ({ cue: .1, note: .5, text: .3, media:.1 })[k] || 0;
+  const maxLen = (k, o) => k == 'media' ? Math.max(.1,(resource(o.resource_id)?.duration || 86400)-(o.offset||0)) : k == 'fx' ? fxSpec(o.type).max : k == 'hook' ? Math.min(8, E.doc.end - E.doc.start) : 1e9;
   const find = (k, id) => k == 'hook' ? E.doc.hook : k == 'clip' ? null : (listOf(k) || []).find(x => x.id == id);
   const selObj = () => E.sel ? find(E.sel.k, E.sel.id) : null;
   function span(k, o) {
@@ -164,9 +168,12 @@ const Editor = (() => {
     E = {
       id, d, lang: d.edl.languages[0], doc: fromServer(d), win: d.window, sel: null, pps: 40, t: d.edl.source.start, playing: false,
       undo: [], redo: [], rev: 0, save: 'saved', saveErr: '', hasDraft: d.has_draft, view: 'live', tab: 'captions', offset: 0,
-      safe: !!d.frame.safe.enforced, snap: true, muted: false, keys: {}, wave: null, drag: null, lastT: 0, filmKey: '', music: null,
+      resources: [], resourceError: '', safe: !!d.frame.safe.enforced, snap: true, muted: false, keys: {}, wave: null, drag: null, lastT: 0, filmKey: '', music: null,
     };
+    if (!cfg.desktop) E.doc.safe_area.enforced = false;
+    E.project = d.source.project_id || currentProject;
     mount();
+    if(cfg.desktop)loadResources();
   }
   function close() {
     opening++;
@@ -175,7 +182,7 @@ const Editor = (() => {
     cancelAnimationFrame(raf); clearTimeout(saveTimer);
     document.removeEventListener('keydown', onKey); window.removeEventListener('resize', fit);
     resizeObserver?.disconnect(); resizeObserver = null;
-    try { E.vid.pause(); E.vid.removeAttribute('src'); E.vid.load(); if (E.music) E.music.pause() } catch { }
+    try { $$('#edMedia video,#edMedia audio').forEach(x=>x.pause()); E.vid.pause(); E.vid.removeAttribute('src'); E.vid.load(); if (E.music) E.music.pause() } catch { }
     E = null; $('#editor').innerHTML = '';
   }
 
@@ -207,7 +214,7 @@ const Editor = (() => {
           <div class="ed-ovl ed-cap" id="edCap" data-k="cue"></div>
           <div class="ed-ovl ed-note" id="edNote" data-k="note"></div>
           <div class="ed-ovl ed-hook" id="edHook" data-k="hook"></div>
-          <div id="edTexts"></div>
+          <div id="edMedia" style="position:absolute;inset:0;pointer-events:none"></div><div id="edTexts"></div>
           <div class="ed-prog" id="edProg"></div>
           <div class="ed-full" id="edFlash" style="background:#fff"></div>
           <div class="ed-full" id="edFade" style="background:#000"></div>
@@ -228,7 +235,7 @@ const Editor = (() => {
        <div class="ed-heads">
         <div id="hdTitle" style="height:${ROW.title}px">${icon('layers')}Títulos</div><div style="height:${ROW.text}px">${icon('text')}Gancho</div><div style="height:${ROW.cap}px">${icon('cc')}Subtítulos</div>
         <div style="height:${ROW.video}px">${icon('film')}Video</div><div id="hdFx" style="height:${ROW.fx}px">${icon('spark')}Efectos</div>
-        <div style="height:${ROW.audio}px">${icon('music')}Audio</div>
+        <div id="hdMedia" style="height:30px">${icon('folder')}Recursos</div><div style="height:${ROW.audio}px">${icon('music')}Audio</div>
        </div>
        <div class="ed-scroll" id="edScroll"><div class="ed-tlc" id="edTl">
         <div class="tl-ruler" id="tlRuler"></div>
@@ -237,7 +244,7 @@ const Editor = (() => {
         <div class="tl-row" id="tlCap" style="height:${ROW.cap}px"></div>
         <div class="tl-row video" id="tlVideo" style="height:${ROW.video}px"><div class="tl-film" id="tlFilm"></div><div id="tlClip"></div></div>
         <div class="tl-row" id="tlFx" style="height:${ROW.fx}px"></div>
-        <div class="tl-row" id="tlAudio" style="height:${ROW.audio}px"><canvas class="tl-wave" id="tlWave" height="${ROW.audio}"></canvas><div id="tlSfx"></div></div>
+        <div class="tl-row" id="tlMedia" style="height:30px"></div><div class="tl-row" id="tlAudio" style="height:${ROW.audio}px"><canvas class="tl-wave" id="tlWave" height="${ROW.audio}"></canvas><div id="tlSfx"></div></div>
         <div class="tl-dim" id="tlDimL" style="left:0"></div><div class="tl-dim" id="tlDimR"></div>
         <div class="tl-snap" id="tlSnap"></div><div class="tl-head" id="tlHead"></div>
        </div></div>
@@ -245,7 +252,7 @@ const Editor = (() => {
      </div></div>`;
     Object.assign(E, { vid: $('#edVid'), bg: $('#edBg'), zoomEl: $('#edZoom'), tl: $('#edTl'), scroll: $('#edScroll'), head: $('#tlHead') });
     mctx = document.createElement('canvas').getContext('2d');
-    $('#edTabs').innerHTML = TABS.map(([k, l, i]) => `<button data-tab="${k}">${icon(i)}${l}</button>`).join('');
+    $('#edTabs').innerHTML = TABS.filter(([k])=>cfg.desktop || k!=='resources').map(([k, l, i]) => `<button data-tab="${k}">${icon(i)}${l}</button>`).join('');
     $('#edTabs').onclick = e => { const b = e.target.closest('[data-tab]'); if (b) { E.tab = b.dataset.tab; rSide() } };
 
     // video fuente
@@ -281,18 +288,26 @@ const Editor = (() => {
   }
   async function useProxy() {
     if (!E || E.proxied) return;
-    E.proxied = true; const me = E;
-    stageMsg('<div><span class="spin"></span><p>El navegador no puede reproducir este archivo directamente.<br>Preparando una vista previa ligera…</p></div>');
+    E.proxied = true;
+    await requestProxy();
+  }
+  async function requestProxy() {
+    if(!E || E.proxyLoading)return;
+    const me=E, resume=E.playing; pause();E.proxyLoading=true;
+    stageMsg('<div><span class="spin"></span><p>Preparando una vista previa ligera…</p></div>');
+    const a=Math.max(0,E.t-30),b=Math.min(E.d.source.duration,a+600);
     try {
-      const p = await api(`/api/clips/${E.id}/proxy?a=${E.win.a}&b=${E.win.b}`, { method: 'POST' });
-      if (E !== me) return;
-      E.offset = p.offset; E.vid.src = p.url;
-    } catch (x) { if (E === me) stageMsg(`<div class="msg">No se pudo preparar la vista previa: ${esc(x.message)}</div>`) }
+      const p=await api(`/api/clips/${E.id}/proxy?a=${a}&b=${b}`,{method:'POST'});
+      if(E!==me)return;
+      E.proxyA=a;E.proxyB=b;E.offset=p.offset;E.vid.src=p.url;E.proxyLoading=false;
+      E.vid.addEventListener('loadedmetadata',()=>{if(E!==me)return;if(E.t<a || E.t>=b){requestProxy();return;}syncVideo();if(resume)play();},{once:true});
+    }catch(x){if(E===me){E.proxyLoading=false;stageMsg(`<div class="msg">${esc(x.message)}</div>`);}}
   }
   const stageMsg = h => { const m = $('#edMsg'); if (m) { m.innerHTML = h; m.classList.toggle('on', !!h) } };
 
-  /* ---------- playback ---------- */
+  /* ---------- reproducción ---------- */
   function syncVideo() {
+    if(E.proxied && (E.t<(E.proxyA??Infinity) || E.t>=(E.proxyB??-1))){requestProxy();return;}
     const v = E.vid, target = E.t - E.offset;
     if (v.readyState < 1) return;
     if (v.seeking) { E.pendingSeek = true; return }
@@ -302,11 +317,12 @@ const Editor = (() => {
   function play() {
     if (E.view != 'live') setView('live');
     if (E.t >= E.doc.end - .05 || E.t < E.doc.start) E.t = E.doc.start;
+    if(E.proxied && (E.t<E.proxyA || E.t>=E.proxyB)){requestProxy();return;}
     const v = E.vid; v.currentTime = Math.max(0, E.t - E.offset); v.muted = E.muted; v.volume = clamp(E.doc.voice, 0, 1); E.lastT = E.t;
     v.play().then(() => { if (E) { E.playing = true; rTransport(); music(true) } }).catch(x => toast('No se pudo reproducir: ' + x.message, 'er'));
   }
   function pause() { if (!E.playing) return; E.playing = false; E.vid.pause(); music(false); rTransport() }
-  function music(on) {   // background music plays in the preview (without ducking, which only the render applies)
+  function music(on) {   // la música de fondo suena en la vista previa (sin el "ducking", que solo se aplica en el render)
     const id = E.doc.music_id;
     if (!on || !id || E.muted) { if (E.music) E.music.pause(); return }
     if (!E.music || E.music.dataset.id != id) { if (E.music) E.music.pause(); E.music = new Audio('/api/sfx/' + id); E.music.loop = true; E.music.dataset.id = id }
@@ -318,8 +334,10 @@ const Editor = (() => {
   function loop() {
     raf = requestAnimationFrame(loop);
     if (!E) return;
+    previewMedia();
     if (E.playing) {
       const t = E.vid.currentTime + E.offset;
+      if(E.proxied && t>=E.proxyB-.1 && E.proxyB<E.doc.end){E.t=E.proxyB;requestProxy();return;}
       if (!E.muted) for (const x of E.doc.sfx) if (x.t > E.lastT && x.t <= t && x.t < E.doc.end) beep(x.sid, x.gain);
       E.lastT = t;
       if (t >= E.doc.end) { pause(); E.t = E.doc.end } else E.t = t;
@@ -339,6 +357,8 @@ const Editor = (() => {
   const geom = () => {
     const g = {...E.d.geometry[E.doc.layout]};
     for (const f of E.doc.fx.filter(f => f.type == 'face_focus' && f.region)) { const box = faceBox(f); g.top_y = Math.min(1920-E.d.frame.safe.bottom-200,Math.max(g.top_y, box.y + box.h + 150)); }
+    const z=E.doc.safe_area;
+    if(z.enforced) Object.assign(g,{safe_width:1080-z.left-z.right,top_safe:z.top,bottom_safe:1920-z.bottom,center_x:(z.left+1080-z.right)/2,top_y:z.top+150,caption_y:1920-z.bottom-140});
     return g;
   };
   function fit() {
@@ -349,6 +369,7 @@ const Editor = (() => {
     $('#edStage').style.transform = `scale(${k})`;
   }
   function layoutStage() {
+    E.d.frame.safe = {...E.doc.safe_area,width:1080-E.doc.safe_area.left-E.doc.safe_area.right,center_x:(E.doc.safe_area.left+1080-E.doc.safe_area.right)/2};
     const g = geom(), W = 1080, H = 1920, s = E.d.source, fg = $('#edFg'), v = E.vid, blur = E.doc.layout == 'gameplay_blur_bg';
     E.bg.style.display = blur ? '' : 'none';
     if (blur) {
@@ -366,7 +387,7 @@ const Editor = (() => {
     if (safe.enforced) capY = clamp(capY, safe.top+140, H-safe.bottom-140);
     $('#edCap').style.top = capY + 'px';
     if (safe.enforced) Object.assign($('#edTexts').style, { position:'absolute',inset:0,pointerEvents:'none',clipPath:`inset(${safe.top}px ${safe.right}px ${safe.bottom}px ${safe.left}px)` });
-    // color: a single matrix, the same one the render uses
+    // color: una sola matriz, la misma que usa el render
     const cp = colorParams(E.doc.color), rows = colorAffine(cp), ident = rows.every((r, i) => r.every((v, j) => Math.abs(v - (i == j ? 1 : 0)) < 1e-4));
     E.grade = ident ? '' : 'url(#edColor) ';
     if (!ident) $('#edColorM').setAttribute('values', matrixValues(rows));
@@ -387,7 +408,7 @@ const Editor = (() => {
     const c = E.bg, k = Math.max(c.width / v.videoWidth, c.height / v.videoHeight), w = v.videoWidth * k, h = v.videoHeight * k;
     try { c.getContext('2d').drawImage(v, (c.width - w) / 2, (c.height - h) / 2, w, h) } catch { }
   }
-  const tw = (text, font, size) => { mctx.font = `${font.w} ${size * (font.s || .83)}px ${font.f}`; return mctx.measureText(text).width };   // size: ASS size (line height)
+  const tw = (text, font, size) => { mctx.font = `${font.w} ${size * (font.s || .83)}px ${font.f}`; return mctx.measureText(text).width };   // size: tamaño ASS (alto de línea)
   function greedy(text, font, size, max) {
     const lines = []; let cur = '';
     for (const word of text.split(/\s+/).filter(Boolean)) {
@@ -401,7 +422,7 @@ const Editor = (() => {
     }
     if (cur) lines.push(cur); return lines;
   }
-  function wrap(text, font, size, max) {   // same as the render's captions.wrap
+  function wrap(text, font, size, max) {   // igual que captions.wrap del render
     let lines = greedy(text, font, size, max); if (lines.length < 2) return lines;
     let lo = max * .5, hi = max;
     for (let i = 0; i < 8; i++) {
@@ -411,6 +432,7 @@ const Editor = (() => {
     return lines;
   }
   function stage() {
+    updateTracking();
     const d = E.doc, t = E.t, it = t - d.start, dur = d.end - d.start, g = geom(), L = E.lang, K = E.keys, FS = { caption: fscale('caption'), text: fscale('text') }, on = t >= d.start - .001 && t < d.end, sel = E.sel || {};
     const face = on && d.fx.find(x => x.type == 'face_focus' && x.region && t >= x.t && t < x.t + x.duration), faceCanvas = $('#edFace');
     faceCanvas.style.display = face ? '' : 'none';
@@ -426,7 +448,7 @@ const Editor = (() => {
       faceCanvas.style.top = box.y + 'px';
       faceCanvas.style.opacity = Math.min(clamp((t - face.t) / .12, 0, 1), clamp((face.t + face.duration - t) / .12, 0, 1));
     }
-    // camera (zoom, slow zoom, shake) and timed effects: the same math as media/render.py
+    // cámara (zoom, zoom lento, temblor) y efectos con duración: las mismas cuentas que media/render.py
     const C = E.d.catalog.fx; let pz = 0, sl = 0, sh = 0, blur = 0, bw = 0, gl = 0, flash = 0;
     if (on) for (const x of d.fx) {
       const a = x.t - d.start, b = a + x.duration, I = x.intensity, inside = it >= a && it <= b;
@@ -444,7 +466,7 @@ const Editor = (() => {
     if (zKey != K.z) { E.zoomEl.style.transform = z == 1 && !env ? '' : `translate(${(-dx).toFixed(1)}px,${(-dy).toFixed(1)}px) scale(${z.toFixed(4)})`; K.z = zKey }
     const filt = E.grade + (blur ? `blur(${blur.toFixed(1)}px) ` : '') + (bw ? 'grayscale(1) ' : '') + (gl ? 'url(#edGlitch)' : '');
     if (filt != K.filt) { K.filt = filt; if (gl) { $('#edGlR').setAttribute('dx', -gl); $('#edGlB').setAttribute('dx', gl) } $('#edPic').style.filter = filt.trim() || 'none' }
-    // flashes, fades and progress bar
+    // destellos, fundidos y barra de progreso
     const tr = d.trans;
     if (on && tr.intro == 'flash' && it < tr.intro_d) flash += C.flash * 1.2 * (1 - it / tr.intro_d);
     let fade = 0;
@@ -508,7 +530,7 @@ const Editor = (() => {
       if (E.d.frame.safe.enforced) { const half=Math.ceil(lines.length*46/2+16); el.style.top=clamp(g.top_y,E.d.frame.safe.top+half,1920-E.d.frame.safe.bottom-half)+'px'; }
       el.dataset.id = n ? n.id : ''; el.classList.toggle('sel', !!n && sel.k == 'note' && sel.id == n.id);
     }
-    // caption
+    // subtítulo
     const cue = on ? track().find(c => t >= c.start && t < c.end) : null;
     let k = 0; if (cue) for (let i = 0; i < cue.words.length; i++) if (cue.words[i].start <= t) k = i;
     const cKey = cue ? cue.id + '|' + k + '|' + d.style + '|' + d.capScale + '|' + cue.words.map(w => w.w + (w.hl ? '*' : '')).join(' ') + '|' + (sel.k == 'cue' && sel.id == cue.id) : '';
@@ -588,6 +610,7 @@ const Editor = (() => {
       const mv = ev => {
         const dx = (ev.clientX - x0) / E.scale, dy = (ev.clientY - y0) / E.scale; if (!moved && Math.max(Math.abs(dx), Math.abs(dy)) < 4) return;
         if (!moved) { moved = true; pushUndo() }
+        E.doc.tracking_enabled=false;
         if (free >= 2) E.doc.crop_x = r3(clamp(c0 - dx / free, 0, 1));
         if (cfg.desktop && freeY >= 2) E.doc.crop_y = r3(clamp(cy0 - dy / freeY, 0, 1)); layoutStage();
       };
@@ -637,7 +660,7 @@ const Editor = (() => {
       <button class="b g ic" data-a="last" title="Ir al final (Fin)" ${live ? '' : 'disabled'}>${icon('last')}</button>
       <span class="sp"></span>
       <button class="b g ic" data-a="mute" title="Silenciar">${icon(E.muted ? 'mute' : 'vol')}</button>
-      <button class="b g sm ${E.safe ? '' : ''}" data-a="safe" title="${E.d.frame.safe.enforced ? 'Mostrar u ocultar la guía. La protección del render permanece activa.' : 'Zonas donde las apps tapan el video'}" style="${E.safe ? 'border-color:var(--ac);color:#fff' : ''}">${icon('eye')}Zona segura</button>
+      <button class="b g sm ${E.safe ? '' : ''}" data-a="safe" title="${E.d.frame.safe.enforced ? 'Mostrar u ocultar la guía. La protección del render permanece activa.' : 'Zonas donde las apps tapan el video'}" style="${E.safe ? 'border-color:var(--ac);color:#fff' : ''}">${icon('eye')}Zona segura</button>${cfg.desktop ? `<button class="b g sm" data-a="safelock" aria-label="${E.doc.safe_area.locked===false?'Bloquear zona segura':'Desbloquear zona segura'}">${icon(E.doc.safe_area.locked===false?'unlock':'lock')}</button>` : ''}
       <div class="seg"><button data-view="live" class="${live ? 'on' : ''}">En vivo</button><button data-view="final" class="${live ? '' : 'on'}">Render final</button></div>`;
     E.keys.clock = null;
   }
@@ -646,7 +669,7 @@ const Editor = (() => {
     const a = e.target.closest('[data-a]'); if (!a || a.disabled) return;
     ({
       play: toggle, first: () => { pause(); seek(E.doc.start) }, last: () => { pause(); seek(E.doc.end - .03) },
-      mute: () => { E.muted = !E.muted; E.vid.muted = E.muted; rTransport() }, safe: () => { E.safe = !E.safe; layoutStage(); rTransport() },
+      safelock: () => { safeAction('lock'); E.tab='format';rSide();rTransport(); }, mute: () => { E.muted = !E.muted; E.vid.muted = E.muted; rTransport() }, safe: () => { E.safe = !E.safe; layoutStage(); rTransport() },
     })[a.dataset.a]();
   }
   function rBar() {
@@ -664,7 +687,7 @@ const Editor = (() => {
       <span class="sp"></span>
       <button class="b g ic" id="tlSnapBtn" data-a="snap" title="Imán: ajustar a palabras, cursor y bordes (Alt lo desactiva)">${icon('magnet')}</button>
       <button class="b g ic" data-a="fit" title="Ver todo el clip">${icon('fit')}</button>
-      ${icon('zoomin')}<input type="range" id="tlZoom" min="6" max="240" step="1" value="${E.pps}">`;
+      ${icon('zoomin')}<input type="range" id="tlZoom" min="0.02" max="240" step="0.02" value="${E.pps}">`;
     $('#tlSnapBtn').style.cssText = E.snap ? 'border-color:var(--cy);color:var(--cy)' : '';
   }
   function onBarClick(e) {
@@ -672,7 +695,7 @@ const Editor = (() => {
     ({ in: () => setEdge('start'), out: () => setEdge('end'), text: () => addText(), note: addNote, cue: addCue, fx: () => addFx(), split: splitCue, del: delSel, fit: fitZoom, snap: () => { E.snap = !E.snap; rBar() } })[a.dataset.a]();
   }
 
-  /* ---------- timeline ---------- */
+  /* ---------- línea de tiempo ---------- */
   const X = t => (t - E.win.a) * E.pps;
   const itemHtml = (k, o, label, extra = '', css = '') => {
     const [a, b] = span(k, o), w = Math.max(k == 'sfx' ? 20 : 4, (b - a) * E.pps), sel = E.sel && E.sel.k == k && (k == 'hook' || E.sel.id == o.id);
@@ -683,21 +706,22 @@ const Editor = (() => {
     const d = E.doc, L = E.lang, total = (E.win.b - E.win.a) * E.pps;
     E.tl.style.width = total + 'px';
     // regla: tiempos relativos al inicio del clip
-    const step = [.5, 1, 2, 5, 10, 15, 30, 60].find(s => s * E.pps >= 64) || 60, first = Math.ceil((E.win.a - d.start) / step) * step;
+    const step = [.5, 1, 2, 5, 10, 15, 30, 60, 120, 300, 600, 1800, 3600].find(s => s * E.pps >= 64) || 3600, first = Math.ceil((E.win.a - d.start) / step) * step;
     let h = '';
     for (let r = first; d.start + r <= E.win.b; r += step) h += `<div class="tk ${r < 0 ? 'neg' : ''}" style="left:${X(d.start + r).toFixed(1)}px">${Math.abs(r) < 1e-6 ? '0:00' : tc(r).replace(/\.0$/, '')}</div>`;
     $('#tlRuler').innerHTML = h;
     $('#tlText').innerHTML = (d.hook.text[L] || d.hook.duration > 0 ? itemHtml('hook', d.hook, d.hook.text[L] || 'Gancho') : '') + d.notes.map(n => itemHtml('note', n, n.text[L] || 'Nota')).join('');
     $('#tlCap').innerHTML = track().map(c => itemHtml('cue', c, c.words.map(w => w.w).join(' '), c.untr ? 'untr' : '')).join('');
-    // texts and effects may overlap: each goes to the first free lane and the row grows
+    // textos y efectos pueden solaparse: cada uno va al primer carril libre y la fila crece
     const laneRow = (row, head, base, k, list, label, cls) => {
-      const ends = [], lane = list.map(x => { let i = ends.findIndex(e => e <= x.t + .001); if (i < 0) i = ends.length; ends[i] = x.t + x.duration; return i });
-      const n = Math.max(1, ends.length), H = n > 1 ? Math.max(base, n * 15 + 6) : base, lh = (H - 6) / n;
+      const packed=EditorCore.lanes(list,x=>[x.t,x.t+x.duration]),lane=packed.positions;
+      const n = packed.count, H = n > 1 ? Math.max(base, n * 15 + 6) : base, lh = (H - 6) / n;
       $(row).style.height = $(head).style.height = H + 'px';
       $(row).innerHTML = list.map((x, i) => itemHtml(k, x, label(x), cls(x), `top:${3 + lane[i] * lh}px;height:${lh - 1}px;bottom:auto;font-size:${Math.min(11.5, lh - 3)}px`)).join('');
     };
     laneRow('#tlFx', '#hdFx', ROW.fx, 'fx', d.fx, x => fxSpec(x.type).label, x => 'fx-' + x.type);
     laneRow('#tlTitle', '#hdTitle', ROW.title, 'text', d.texts, x => (x.text[L] || 'Texto').replace(/\n/g, ' '), () => '');
+    laneRow('#tlMedia','#hdMedia',30,'media',d.media,x=>resource(x.resource_id)?.name || 'Recurso',()=> '');
     $('#tlSfx').innerHTML = d.sfx.map(x => itemHtml('sfx', x, '♪ ' + x.sid.replace(/_\d+$/, ''))).join('');
     const xa = X(d.start), xb = X(d.end);
     $('#tlClip').innerHTML = `<div class="tl-clip" style="left:${xa}px;width:${xb - xa}px"></div><div class="trim l" style="left:${xa}px" title="Arrastra para cambiar el inicio"></div><div class="trim r" style="left:${xb}px" title="Arrastra para cambiar el final"></div>`;
@@ -706,9 +730,9 @@ const Editor = (() => {
   }
   function rFilm() {
     const key = E.pps + '|' + E.win.a + '|' + E.win.b; if (key == E.filmKey) return; E.filmKey = key;
-    const s = E.d.source, tileW = Math.max(40, Math.round(ROW.video * s.width / s.height)), total = (E.win.b - E.win.a) * E.pps, n = Math.ceil(total / tileW);
+    const s = E.d.source, tileW = Math.max(40, Math.round(ROW.video * s.width / s.height)), total = (E.win.b - E.win.a) * E.pps, n = Math.min(500, Math.ceil(total / tileW));
     let h = '';
-    for (let i = 0; i < n; i++) { const t = E.win.a + (i + .5) * tileW / E.pps; h += `<img loading="lazy" draggable="false" style="left:${i * tileW}px;width:${tileW}px" src="/api/sources/${s.id}/frame?t=${(Math.round(t * 2) / 2).toFixed(1)}&h=72">` }
+    for (let i = 0; i < n; i++) { const t = E.win.a + (i + .5) * (E.win.b-E.win.a)/n; h += `<img loading="lazy" draggable="false" style="left:${i * total/n}px;width:${total/n}px" src="/api/sources/${s.id}/frame?t=${(Math.round(t * 2) / 2).toFixed(1)}&h=72">` }
     $('#tlFilm').innerHTML = h;
     $('#tlWave').style.width = total + 'px';
   }
@@ -723,12 +747,12 @@ const Editor = (() => {
     if (follow) { const sc = E.scroll; if (x < sc.scrollLeft + 20 || x > sc.scrollLeft + sc.clientWidth - 40) sc.scrollLeft = x - sc.clientWidth * .2 }
   }
   function setPps(p, anchor) {
-    const sx = X(anchor) - E.scroll.scrollLeft; E.pps = clamp(p, 6, 240);
+    const sx = X(anchor) - E.scroll.scrollLeft; E.pps = clamp(p, .02, 240);
     rTimeline(); E.scroll.scrollLeft = X(anchor) - sx;
     const z = $('#tlZoom'); if (z) z.value = E.pps;
   }
   function fitZoom() {
-    const w = E.scroll.clientWidth || 900; E.pps = clamp((w - 120) / (E.doc.end - E.doc.start), 6, 240);
+    const w = E.scroll.clientWidth || 900; E.pps = clamp((w - 120) / (E.doc.end - E.doc.start), .02, 240);
     rTimeline(); E.scroll.scrollLeft = X(E.doc.start) - 60;
     const z = $('#tlZoom'); if (z) z.value = E.pps;
   }
@@ -748,7 +772,7 @@ const Editor = (() => {
     if (k == 'cue' || k == 'trim' || k == 'sfx' || k == 'fx') for (const w of E.d.words) c.push(w.start, w.end);
     return c;
   }
-  function neighbours(k, id, a, b) {   // free gaps on each side, so notes and captions don't overlap
+  function neighbours(k, id, a, b) {   // huecos libres a cada lado, para que notas y subtítulos no se pisen
     let lo = E.win.a, hi = E.win.b;
     if (k == 'cue' || k == 'note') for (const o of listOf(k)) {
       if (o.id == id) continue; const [oa, ob] = span(k, o);
@@ -826,7 +850,7 @@ const Editor = (() => {
     if (d.end > oldEnd + .05) fillCaptions(oldEnd, d.end);
     E.t = clamp(E.t, d.start, d.end);
   }
-  function fillCaptions(a, b) {   // captions for a newly included range, built from the transcript
+  function fillCaptions(a, b) {   // subtítulos para un tramo recién incluido, a partir de la transcripción
     const words = E.d.words.filter(w => { const m = (w.start + w.end) / 2; return m >= a && m <= b }), srcLang = E.d.edl.source_language;
     for (const [lang, cues] of Object.entries(E.doc.tracks)) {
       const free = words.filter(w => { const m = (w.start + w.end) / 2; return !cues.some(c => m >= c.start - .05 && m <= c.end + .05) });
@@ -852,7 +876,7 @@ const Editor = (() => {
     change(doc => { doc[which] = r3(t); afterTrim(o.start, o.end); sortDoc() });
     fitZoom();
   }
-  function freeSlot(k, t, want) {   // free range from t for a new item
+  function freeSlot(k, t, want) {   // tramo libre desde t para un elemento nuevo
     for (const o of [...listOf(k)].sort((x, y) => span(k, x)[0] - span(k, y)[0])) { const [oa, ob] = span(k, o); if (t >= oa - .001 && t < ob) t = ob }
     const [, hi] = neighbours(k, null, t, t + .001);
     return [t, Math.min(hi, E.doc.end, t + want)];
@@ -902,7 +926,7 @@ const Editor = (() => {
     const s = E.sel; if (!s) return;
     if (s.k == 'clip') return;
     if (s.k == 'hook') { change(d => { d.hook.duration = 0 }); toast('Gancho oculto. Deshaz con Ctrl+Z o dale duración en Texto.'); return }
-    change(d => { const key = { note: 'notes', sfx: 'sfx', fx: 'fx', text: 'texts' }[s.k], list = s.k == 'cue' ? d.tracks[E.lang] : d[key]; const i = list.findIndex(x => x.id == s.id); if (i >= 0) list.splice(i, 1) });
+    change(d => { const key = { note: 'notes', sfx: 'sfx', fx: 'fx', text: 'texts', media:'media' }[s.k], list = s.k == 'cue' ? d.tracks[E.lang] : d[key]; const i = list.findIndex(x => x.id == s.id); if (i >= 0) list.splice(i, 1) });
     E.sel = null; refresh();
   }
   function setCueText(c, text) {
@@ -943,6 +967,67 @@ const Editor = (() => {
     } catch (x) { over.remove(); toast(x.message, 'er'); if (E) rTop() }
   }
 
+
+  const resource = id => E.resources.find(x=>x.id===id);
+  const mediaUrl = id => `/api/projects/${encodeURIComponent(E.project)}/resources/${encodeURIComponent(id)}/file`;
+  const safeTemplates = () => { try { return JSON.parse(localStorage.getItem('clipper.safe.templates') || '[]'); } catch { return []; } };
+  const modePanel = () => !cfg.desktop ? '' : `<div class="ed-sec"><label for="edMode">Editor</label><select id="edMode"><option value="clip" ${E.doc.editor_mode==='clip'?'selected':''}>Clips</option><option value="long" ${E.doc.editor_mode==='long'?'selected':''}>Videos largos</option></select><p class="hint">Toda la fuente está disponible. Ajusta el rango y el zoom para trabajar con videos largos.</p><button class="b g sm" data-safe-action="full">Usar fuente completa</button></div>`;
+  function safePanel() {
+    if(!cfg.desktop)return '';
+    const z=E.doc.safe_area, locked=z.locked!==false;
+    return `<div class="ed-sec"><h4>Zona segura<button class="b g sm" data-safe-action="lock" aria-pressed="${locked}">${icon(locked?'lock':'unlock')}${locked?'Desbloquear':'Bloquear'}</button></h4><p class="hint">La IA usa la zona centrada como referencia. Desbloquea para ajustar los márgenes del montaje.</p>${['left','right','top','bottom'].map(k=>`<div class="fld"><span>${({left:'Izquierda',right:'Derecha',top:'Arriba',bottom:'Abajo'})[k]}</span><input type="range" data-safe-margin="${k}" min="0" max="${k==='left'||k==='right'?300:700}" value="${z[k]}" ${locked?'disabled':''}><output>${z[k]} px</output></div>`).join('')}<label for="edSafeTemplate">Plantillas guardadas</label><select id="edSafeTemplate" ${locked?'disabled':''}><option value="">Selecciona una plantilla</option>${safeTemplates().map((x,i)=>`<option value="${i}">${esc(x.name)}</option>`).join('')}</select><input id="edSafeName" placeholder="Nombre de la plantilla" maxlength="80" ${locked?'disabled':''}><button class="b g sm" data-safe-action="save" ${locked?'disabled':''}>Guardar plantilla</button><button class="b g sm" data-safe-action="reset" ${locked?'disabled':''}>Centrar zona</button></div>`;
+  }
+  function safeAction(action) {
+    if(action==='full'){const old={start:E.doc.start,end:E.doc.end};change(d=>{d.editor_mode='long';d.start=0;d.end=Math.min(E.d.source.duration,E.d.limits.max);afterTrim(old.start,old.end)});fitZoom();return;}
+    if(action==='lock')change(d=>{d.safe_area.locked=d.safe_area.locked===false});
+    else if(E.doc.safe_area.locked!==false)return;
+    else if(action==='reset')change(d=>{Object.assign(d.safe_area,{left:100,right:100,top:240,bottom:240})});
+    else if(action==='save') {
+      const name=$('#edSafeName').value.trim(); if(!name){toast('Escribe un nombre para la plantilla','er');return;}
+      const templates=safeTemplates().filter(x=>x.name!==name);templates.push({name,safe:copy(E.doc.safe_area)});
+      try{localStorage.setItem('clipper.safe.templates',JSON.stringify(templates));toast('Plantilla guardada','ok');rSide();}catch{toast('No se pudo guardar la plantilla','er');}
+    }
+    rTransport();
+  }
+  async function loadResources() {
+    const me=E;try {const rows=await api(`/api/projects/${encodeURIComponent(E.project)}/resources`);if(E!==me)return;E.resources=rows;E.resourceError='';if(E.tab==='resources')rSide();}catch(x){if(E===me){E.resourceError=x.message;if(E.tab==='resources')rSide();}}
+  }
+  function resourcePanel() {
+    return `${modePanel()}<div class="ed-sec"><h4>Recursos del proyecto</h4><label for="edImport">Importar contenido</label><input id="edImport" type="file" accept=".png,.jpg,.jpeg,.webp,.gif,.mp4,.mov,.webm,.wav,.mp3,.m4a,.ogg,.flac"><p class="hint">Añade imágenes, videos o audio al cursor. Las imágenes y videos ocupan el lienzo; ajusta su tiempo y volumen en Propiedades.</p>${E.resourceError?`<p role="alert">${esc(E.resourceError)}</p>`:''}${E.resources.filter(x=>['image','audio','video'].includes(x.kind)).map(x=>`<div class="ed-sec"><strong data-ui-content>${esc(x.name)}</strong>${x.kind==='image'?`<img style="width:100%;max-height:100px;object-fit:contain" loading="lazy" src="${mediaUrl(x.id)}" alt="${esc(x.name)}">`:''}<button class="b g sm" data-resource-add="${esc(x.id)}">${icon('plus')}Añadir al cursor</button></div>`).join('') || '<p class="hint">Importa recursos para empezar.</p>'}</div>`;
+  }
+  async function importResource(file) {
+    if(!file)return; const me=E, form=new FormData();form.append('file',file);
+    try {await api(`/api/projects/${encodeURIComponent(E.project)}/resources`,{method:'POST',body:form});if(E===me)await loadResources();}catch(x){if(E===me)toast(x.message,'er');}
+  }
+  function addMedia(id) {
+    const r=resource(id); if(!r)return;
+    const t=clamp(E.t,E.doc.start,E.doc.end-.1), duration=Math.min(r.duration || 5,E.doc.end-t);
+    change(d=>{d.media.push({id:uid(),resource_id:id,t,duration,offset:0,gain:1})});
+  }
+  function updateTracking() {
+    if(E.doc.layout!=='center_crop' || !E.doc.tracking_enabled)return;
+    const points=E.d.edl.framing?.track || [];if(points.length<2)return;
+    const a=[...points].reverse().find(p=>
+      p.source_time<=E.t) || points[0], b=points.find(p=>
+      E.t<p.source_time) || points[points.length-1];
+    const f=b.source_time>a.source_time?clamp((E.t-a.source_time)/(b.source_time-a.source_time),0,1):0;
+    const s=E.d.source,k=Math.max(1080/s.width,1920/s.height);
+    E.vid.style.left=-(s.width*k-1080)*(a.x+(b.x-a.x)*f)+'px';E.vid.style.top=-(s.height*k-1920)*(a.y+(b.y-a.y)*f)+'px';
+  }
+  function previewMedia() {
+    const container=$('#edMedia'); if(!container)return;
+    const active=E.doc.media.filter(x=>
+      x.t<=E.t && E.t<x.t+x.duration && E.t>=E.doc.start && E.t<E.doc.end);
+    const ids=new Set(active.map(x=>x.id));
+    for(const el of [...container.children])if(!ids.has(el.dataset.id)){el.pause?.();el.remove();}
+    for(const item of active){
+      const r=resource(item.resource_id);if(!r)continue;
+      let el=[...container.children].find(x=>x.dataset.id===item.id);
+      if(!el){el=document.createElement(r.kind==='image'?'img':r.kind==='audio'?'audio':'video');el.dataset.id=item.id;el.src=mediaUrl(r.id);el.style.cssText='position:absolute;inset:0;width:100%;height:100%;object-fit:contain;background:#000';if(r.kind==='audio')el.style.display='none';container.append(el);}
+      if(r.kind!=='image'){const time=E.t-item.t+item.offset;if(el.readyState>=1 && Math.abs(el.currentTime-time)>.2)el.currentTime=time;el.muted=E.muted;el.volume=clamp(item.gain,0,1);if(E.playing && el.paused)el.play().catch(()=>{});if(!E.playing && !el.paused)el.pause();}
+    }
+  }
+
   /* ---------- panel izquierdo ---------- */
   const rowTime = t => tc(t - E.doc.start);
   function rSide() {
@@ -950,7 +1035,7 @@ const Editor = (() => {
     $$('#edTabs button').forEach(b => b.classList.toggle('on', b.dataset.tab == E.tab));
     const isSel = (k, id) => E.sel && E.sel.k == k && E.sel.id == id ? 'sel' : '';
     let h = '';
-    if (E.tab == 'captions') {
+    if (E.tab == 'resources') { h = resourcePanel(); } else if (E.tab == 'captions') {
       const cues = track(), untr = cues.filter(c => c.untr && inClip(c.start, c.end)).length;
       const pv = sp => { const f = font(sp.font); return `font-family:${f.f.replace(/"/g, "'")};font-weight:${f.w};color:${sp.color};-webkit-text-stroke:3px ${sp.outline_color};paint-order:stroke fill;${sp.glow ? `text-shadow:0 0 6px ${sp.outline_color};` : ''}${sp.font == 'pixel' ? 'font-size:9px;' : ''}` };
       h = `<div class="ed-sec"><h4>Estilo</h4><div class="opt c3">${Object.entries(E.d.styles).map(([k, sp]) => `<button data-style="${k}" class="${d.style == k ? 'on' : ''}"><span class="pv" style="${pv(sp)}">${sp.upper ? 'HOLA' : 'Hola'}<br><b style="color:${sp.active}">${sp.upper ? 'MUNDO' : 'mundo'}</b></span>${esc(sp.label)}</button>`).join('')}</div>
@@ -1009,7 +1094,7 @@ const Editor = (() => {
         ${COLOR_UI.map(([k, l, lo]) => `<div class="fld"><span>${l}</span><input type="range" data-col="${k}" min="${lo}" max="1" step="0.01" value="${c[k]}"><output>${Math.round(c[k] * 100)}</output></div>`).join('')}
         <p class="hint">Lo que ves en la vista previa es lo que sale en el render: los dos usan la misma matriz de color.</p></div>`;
     } else {
-      h = `<div class="ed-sec"><h4>Encuadre</h4><div class="opt">
+      h = `${modePanel()}${safePanel()}<div class="ed-sec"><h4>Encuadre</h4>${E.d.edl.framing?.track?.length>1 ? `<label class="tog"><input type="checkbox" data-f="tracking" ${d.tracking_enabled?'checked':''}>Seguir sujeto con IA</label><p class="hint">Movimiento interpolado entre las referencias visuales de la IA.</p>` : ''}<div class="opt">
          <button data-layout="gameplay_blur_bg" class="${d.layout == 'gameplay_blur_bg' ? 'on' : ''}"><span class="lay blur"></span>Completo + fondo</button>
          <button data-layout="center_crop" class="${d.layout == 'center_crop' ? 'on' : ''}"><span class="lay crop"></span>Recorte vertical</button></div>
         ${d.layout == 'center_crop' ? `<div class="fld"><span>Horizontal</span><input type="range" data-f="crop" min="0" max="1" step="0.01" value="${d.crop_x}"><output>${Math.round(d.crop_x * 100)}%</output></div>${cfg.desktop ? `<div class="fld"><span>Vertical</span><input type="range" data-f="cropy" min="0" max="1" step="0.01" value="${d.crop_y}"><output>${Math.round(d.crop_y * 100)}%</output></div><p class="hint">El recorte solo muestra aproximadamente ${Math.round(Math.min(1, (1080/1920)/(E.d.source.width/E.d.source.height))*100)}% del ancho original. Si desaparecen ventanas o el creador, elige Completo + fondo.</p>` : ''}<p class="hint">También puedes arrastrar la imagen en la vista previa.</p>` : '<p class="hint">Se ve el video entero, con un fondo desenfocado arriba y abajo.</p>'}</div>
@@ -1021,11 +1106,12 @@ const Editor = (() => {
   }
   function onSideInput(e) {
     const t = e.target, f = t.dataset.f;
+    if(t.dataset.safeMargin) { const k=t.dataset.safeMargin; if(E.doc.safe_area.locked !== false)return; change(d=>{d.safe_area[k]=clamp(+t.value,0,k==='left'||k==='right'?300:700)}, {key:'safe-'+k,soft:true});t.nextElementSibling.textContent=t.value+' px';return; }
     if (t.dataset.cue) { const id = t.dataset.cue; change(d => { const c = d.tracks[E.lang].find(x => x.id == id); if (c) setCueText(c, t.value) }, { key: 'cue' + id, soft: true }); t.closest('.cue').classList.remove('untr'); if (E.sel && E.sel.id == id) rInsp(); return }
     if (t.dataset.hook) { change(d => { d.hook.text[t.dataset.hook] = t.value }, { key: 'hook' + t.dataset.hook, soft: true }); return }
     if (f == 'hookdur') { change(d => { d.hook.duration = +t.value }, { key: f, soft: true }); t.nextElementSibling.textContent = (+t.value).toFixed(1) + ' s'; if (!E.playing) seek(E.doc.start + Math.max(0, +t.value - .05)) }
-    else if (f == 'crop') { change(d => { d.crop_x = +t.value }, { key: f, soft: true }); t.nextElementSibling.textContent = Math.round(t.value * 100) + '%' }
-    else if (f == 'cropy') { change(d => { d.crop_y = +t.value }, { key: f, soft: true }); t.nextElementSibling.textContent = Math.round(t.value * 100) + '%' }
+    else if (f == 'crop') { change(d => { d.tracking_enabled=false; d.crop_x = +t.value }, { key: f, soft: true }); t.nextElementSibling.textContent = Math.round(t.value * 100) + '%' }
+    else if (f == 'cropy') { change(d => { d.tracking_enabled=false; d.crop_y = +t.value }, { key: f, soft: true }); t.nextElementSibling.textContent = Math.round(t.value * 100) + '%' }
     else if (f == 'lufs') { change(d => { d.lufs = +t.value }, { key: f, soft: true }); t.nextElementSibling.textContent = t.value + ' LUFS' }
     else if (f == 'capscale') { change(d => { d.capScale = +t.value }, { key: f, soft: true }); t.nextElementSibling.textContent = Math.round(t.value * 100) + '%' }
     else if (f == 'capy') { change(d => { d.capY = +t.value }, { key: f, soft: true }); t.nextElementSibling.textContent = Math.round(t.value * 100) + '%' }
@@ -1037,6 +1123,10 @@ const Editor = (() => {
   }
   function onSideChange(e) {
     const t = e.target, f = t.dataset.f;
+    if(t.id==='edImport') { importResource(t.files[0]); return; }
+    if(t.id==='edMode') { change(d=>{d.editor_mode=t.value}); if(t.value==='long'){E.tab='resources';rSide();} return; }
+    if(f==='tracking') {change(d=>{d.tracking_enabled=t.checked});return;}
+    if(t.id==='edSafeTemplate') { if(t.value==='')return; const template=safeTemplates()[+t.value]; if(template)change(d=>{d.safe_area={...d.safe_area,...template.safe,locked:false}});return; }
     if (f == 'music') { change(d => { d.music_id = t.value || null }); if (E.playing) music(true) }
     else if (f == 'duck') change(d => { d.duck = t.checked }, { soft: true });
     else if (f == 'enhance') change(d => { d.enhance = t.checked }, { soft: true });
@@ -1053,6 +1143,8 @@ const Editor = (() => {
   function onSideFocus(e) { const id = e.target.dataset.cue; if (id && !(E.sel && E.sel.id == id)) { const c = find('cue', id); select({ k: 'cue', id }, true); $$('#edSide .cue.sel').forEach(x => x.classList.remove('sel')); e.target.closest('.cue').classList.add('sel'); if (c && !E.playing) seek(c.start + .01) } }
   function onSideClick(e) {
     const q = s => e.target.closest(s); let b;
+    if(b=q('[data-resource-add]')) { addMedia(b.dataset.resourceAdd); return; }
+    if(b=q('[data-safe-action]')) { safeAction(b.dataset.safeAction);return; }
     if (b = q('[data-style]')) change(d => { d.style = b.dataset.style });
     else if (b = q('[data-layout]')) change(d => { d.layout = b.dataset.layout });
     else if (b = q('[data-del]')) { const id = b.closest('[data-id]').dataset.id; E.sel = { k: 'cue', id }; delSel() }
@@ -1072,7 +1164,9 @@ const Editor = (() => {
     const head = (k, del = true) => `<h4>${KNAME[k]}<span class="sp"></span>${del ? `<button class="b er sm" data-a="del">${icon('trash')}Eliminar</button>` : ''}</h4>`;
     const timing = (a, len, minLen) => `<div class="row" style="grid-template-columns:1fr 1fr"><div><label>Empieza (s)</label><input type="number" step="0.05" data-n="a" value="${rel(a)}"></div>${len == null ? '' : `<div><label>Dura (s)</label><input type="number" step="0.05" min="${minLen}" data-n="len" value="${len.toFixed(2)}"></div>`}</div>`;
     let h;
-    if (s && s.k == 'cue' && o) {
+    if(s && s.k === 'media' && o) {
+      h=`${head('media')}<p data-ui-content>${esc(resource(o.resource_id)?.name || o.resource_id)}</p>${timing(o.t,o.duration,.1)}<label>Inicio en el recurso (s)</label><input type="number" min="0" step="0.1" data-i="mediaoffset" value="${o.offset}"><label>Volumen</label><input type="number" min="0" max="3" step="0.1" data-i="mediagain" value="${o.gain}">`;
+    } else if (s && s.k == 'cue' && o) {
       h = `${head('cue')}<label>Texto (${L.toUpperCase()})</label><input data-i="cuetext" data-focus value="${esc(o.words.map(w => w.w).join(' '))}" spellcheck="false">
         <label>Palabras resaltadas</label><div class="words">${o.words.map((w, i) => `<button data-w="${i}" class="${w.hl ? 'hl' : ''}">${esc(w.w)}</button>`).join('')}</div>
         <p class="hint">Toca una palabra para pintarla como palabra clave. La palabra que se está diciendo siempre se ilumina sola.</p>
@@ -1118,7 +1212,7 @@ const Editor = (() => {
          <div><small>Subtítulos</small><b>${track().filter(c => inClip(c.start, c.end)).length}</b></div><div><small>Notas</small><b>${d.notes.filter(n => inClip(n.t, n.t + n.duration)).length}</b></div></div>
         ${E.d.frame.safe.enforced ? `<p class="hint">Shorts/Reels: textos y animaciones se ajustan automáticamente al área útil. Ocultar la guía no desactiva la protección. Las interfaces reales pueden variar.</p>` : ''}
         ${E.d.requires_safe_render ? '<div class="msg wa">La vista previa incluye las correcciones de encuadre y zonas seguras. Pulsa Renderizar para actualizar el video anterior.</div>' : ''}
-        ${dur > lim.recommended_max ? `<div class="msg wa">Dura más de ${lim.recommended_max} s, el máximo configurado para clips. Se puede renderizar, pero el guard de duración lo marcará.</div>` : ''}
+        ${d.editor_mode !== 'long' && dur > lim.recommended_max ? `<div class="msg wa">Dura más de ${lim.recommended_max} s, el máximo configurado para clips. Se puede renderizar, pero el guard de duración lo marcará.</div>` : ''}
         ${untr ? `<div class="msg wa">${untr} subtítulo(s) sin traducir en los tramos añadidos.</div>` : ''}
         ${rv.feedback ? `<div class="msg info"><b>Revisión:</b> ${esc(rv.feedback)}</div>` : ''}
         <p class="hint" style="margin-bottom:14px">Selecciona un elemento en la línea de tiempo o en la vista previa para editarlo aquí.</p>
@@ -1130,7 +1224,7 @@ const Editor = (() => {
     $('#edInsp').innerHTML = h;
   }
   const fmtTp = (k, v) => k == 'x' || k == 'y' || k == 'opacity' || k == 'box_opacity' ? Math.round(v * 100) + '%' : String(v);
-  function setTextProp(t, discrete) {   // one property of the selected text
+  function setTextProp(t, discrete) {   // una propiedad del texto seleccionado
     const s = E.sel, k = t.dataset.tp, v = t.type == 'checkbox' ? t.checked : t.type == 'range' ? +t.value : t.value;
     change(d => {
       const o = d.texts.find(x => x.id == s.id); if (!o) return;
@@ -1143,6 +1237,7 @@ const Editor = (() => {
   function onInspInput(e) {
     const t = e.target, i = t.dataset.i, s = E.sel; if (!s) return;
     if (t.dataset.tp) { if (t.type != 'checkbox' && t.tagName != 'SELECT') setTextProp(t, false); return }
+    if(i==='mediaoffset' || i==='mediagain'){change(d=>{const x=d.media.find(x=>x.id===s.id);if(x)x[i==='mediaoffset'?'offset':'gain']=Math.max(0,+t.value)}, {key:i+s.id,soft:true});return;}
     if (i == 'fxint') { change(d => { const x = d.fx.find(x => x.id == s.id); if (x) x.intensity = +t.value }, { key: 'fxint' + s.id, soft: true }); t.nextElementSibling.textContent = Math.round(t.value * 100) + '%'; return }
     if (i && i.startsWith('face-')) {
       const k = i.slice(5);
@@ -1196,6 +1291,22 @@ const Editor = (() => {
   }
 
   /* ---------- teclado ---------- */
+  function shortClipboard(command){
+    const object=selObj(),kind=E.sel?.k;
+    if(command!=='v'){
+      if(!object||['clip','hook'].includes(kind))return;
+      EditorCore.copy(kind,object,span(kind,object)[0],E.project,'shorts');
+      if(command==='x'){delSel();return;}
+      if(command==='c')return;
+    }
+    const at=command==='d'?span(kind,object)[1]:E.t,entry=EditorCore.read(E.project,'shorts',at);
+    if(!entry)return;
+    const [a,b]=span(entry.kind,entry.value);
+    if(a<E.doc.start||b>E.doc.end){toast('El elemento no cabe en el rango actual.','er');return;}
+    entry.value.id=uid();
+    change(()=>{listOf(entry.kind).push(entry.value);sortDoc();});
+    select({k:entry.kind,id:entry.value.id});
+  }
   function onKey(e) {
     if (!E || $('.ed-over') || $('#modal').innerHTML) return;
     const tag = (e.target.tagName || '').toLowerCase(), typing = tag == 'textarea' || tag == 'select' || (tag == 'input' && !['range', 'checkbox'].includes(e.target.type));
@@ -1204,6 +1315,7 @@ const Editor = (() => {
     if (mod && k == 'y' && !typing) { e.preventDefault(); undo(true); return }
     if (mod && k == 's') { e.preventDefault(); clearTimeout(saveTimer); saveDraft(); return }
     if (typing) { if (e.key == 'Escape') e.target.blur(); return }
+    if(mod&&['c','x','v','d'].includes(k)){e.preventDefault();shortClipboard(k);return;}
     if (mod) return;
     const f = 1 / E.d.frame.fps;
     const map = {

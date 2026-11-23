@@ -97,7 +97,7 @@ class MetadataAgent(Subagent):
     def offline(self, inp: MetadataInput) -> dict:
         def one(lang: str) -> dict:
             title = inp.edl.hook.text.get(lang, "Clip")[: self.s.limits.title_max]
-            desc = "[offline] Test description generated without AI."
+            desc = "[offline] Descripción de prueba generada sin Claude."
             return {p: {"title": title if p == "youtube" else "", "description": desc, "hashtags": ["#shorts", "#clips"]} for p in PLATFORMS}
 
         return {"per_language": {lang: one(lang) for lang in inp.edl.languages}}

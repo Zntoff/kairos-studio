@@ -18,6 +18,28 @@ def extract_audio(video: str | Path, out_wav: Path) -> Path:
     return out_wav
 
 
+def transcribe_clip(video: str | Path, out_wav: Path, start: float, end: float,
+                    settings: Settings, language: str | None = None) -> Transcript:
+    """Align against the actual cut, retaining source coordinates for caption generation.
+
+    A little context protects words cut at either edge. Never rescale timestamps to
+    fit a clip: pauses and variable speech rate must retain their acoustic timing.
+    """
+    origin = max(0.0, start - 0.4)
+    out_wav.parent.mkdir(parents=True, exist_ok=True)
+    ffmpeg.run(["-ss", f"{origin:.3f}", "-i", str(video), "-t", f"{end + .4 - origin:.3f}",
+                "-vn", "-ac", "1", "-ar", "16000", "-c:a", "pcm_s16le", str(out_wav)])
+    transcript = transcribe(out_wav, settings, language)
+    for segment in transcript.segments:
+        segment.start += origin
+        segment.end += origin
+        for word in segment.words:
+            word.start += origin
+            word.end += origin
+    transcript.duration += origin
+    return transcript
+
+
 def resegment(words: list[Word], *, max_pause: float = 0.7, max_len: float = 14.0) -> list[Segment]:
     """Group words into sentence-like segments so that segment edges are natural cut points:
     the end of a sentence, a pause, or a length cap."""

@@ -14,7 +14,9 @@ $ErrorActionPreference='Stop'
 $root=$PSScriptRoot
 $python=Get-Command python -ErrorAction Stop
 $version=([xml](Get-Content -LiteralPath (Join-Path $root 'desktop/ClipperStudio/ClipperStudio.csproj') -Raw)).Project.PropertyGroup.Version
-if($version -notmatch '^\d+\.\d+\.\d+$'){throw 'Use a stable semantic version.'}
+if($version -notmatch '^\d+\.\d+\.\d+(-beta\.[1-9]\d*)?$'){throw 'Use a stable or beta semantic version.'}
+$channel=if($version -like '*-beta.*'){'beta'}else{'stable'}
+$numericVersion=$version.Split('-')[0]
 $pythonVersion=[regex]::Match((Get-Content -LiteralPath (Join-Path $root 'pyproject.toml') -Raw),'(?m)^version = "([^"]+)"').Groups[1].Value
 $packageVersion=[regex]::Match((Get-Content -LiteralPath (Join-Path $root 'clipper/__init__.py') -Raw),'__version__ = "([^"]+)"').Groups[1].Value
 if($version -ne $pythonVersion -or $version -ne $packageVersion -or ($ExpectedVersion -and $version -ne $ExpectedVersion.TrimStart('v'))){throw 'Desktop, Python and release tag versions must match.'}
@@ -44,7 +46,7 @@ try {
         if(-not(Test-Path -LiteralPath (Join-Path $application 'KairosStudio.exe'))){throw 'Application publish did not return a package directory.'}
         $report=Get-Content -LiteralPath (Join-Path $application 'signing-report.json') -Raw|ConvertFrom-Json
         $signed=[bool]$report.publicReleaseReady
-        $arguments=@("/DAppVersion=$version","/DSourceDir=$application","/DReleaseDir=$output")
+        $arguments=@("/DAppVersion=$version","/DAppNumericVersion=$numericVersion","/DSourceDir=$application","/DReleaseDir=$output")
         $previous=@{}
         try {
             if($signed){
@@ -66,12 +68,12 @@ try {
         $scratch=Join-Path $env:TEMP ('KairosPortable-'+[guid]::NewGuid().ToString('N'))
         $portable=Join-Path $scratch "KairosStudio-$version-Portable"
         New-Item -ItemType Directory -Path $portable -Force|Out-Null
-        # TEMP can be an 8.3 short path (CI runners) while enumerated files report the long one; use the long form
-        # so the relative paths in SHA256SUMS.txt are cut correctly.
-        $portable=(Get-ChildItem -LiteralPath $scratch -Directory|Where-Object Name -eq "KairosStudio-$version-Portable").FullName
         Get-ChildItem -LiteralPath $application|Copy-Item -Destination $portable -Recurse
         'Kairos Studio portable mode. Keep this file beside KairosStudio.exe.'|Set-Content -LiteralPath (Join-Path $portable 'portable.flag') -Encoding ASCII
-        $hashes=Get-ChildItem -LiteralPath $portable -File -Recurse|Where-Object {$_.Name -ne 'SHA256SUMS.txt'}|Sort-Object FullName|ForEach-Object {((Get-FileHash -LiteralPath $_.FullName -Algorithm SHA256).Hash.ToLower()+'  '+$_.FullName.Substring($portable.Length+1).Replace('\','/'))}
+        $hashes=Get-ChildItem -LiteralPath $portable -File -Recurse -Force -Name |
+            Where-Object {$_ -ne 'SHA256SUMS.txt'} | Sort-Object | ForEach-Object {
+                (Get-FileHash -LiteralPath (Join-Path $portable $_) -Algorithm SHA256).Hash.ToLower()+'  '+$_.Replace('\','/')
+            }
         $hashes|Set-Content -LiteralPath (Join-Path $portable 'SHA256SUMS.txt') -Encoding ASCII
         Add-Type -AssemblyName System.IO.Compression.FileSystem
         $zip=Join-Path $output "KairosStudio-$version-Portable-win-x64.zip"
@@ -84,7 +86,7 @@ try {
         Remove-Item -LiteralPath $resolvedScratch -Recurse -Force
     }
     $files=@($artifacts|ForEach-Object {[ordered]@{name=$_.Name;bytes=$_.Length;sha256=(Get-FileHash -LiteralPath $_.FullName -Algorithm SHA256).Hash.ToLower()}})
-    [ordered]@{version=$version;target=$Target;dockerImage="kairos-studio:$version";windowsSigned=$signed;publicReleaseReady=($signed -and $Target -eq 'All');files=$files}|ConvertTo-Json -Depth 5|Set-Content -LiteralPath (Join-Path $output 'release-manifest.json') -Encoding UTF8
+    [ordered]@{version=$version;channel=$channel;target=$Target;dockerImage=$(if($Target -in @('All','Docker')){"kairos-studio:$version"}else{$null});windowsSigned=$signed;publicReleaseReady=($signed -and $Target -eq 'All' -and $channel -eq 'stable');files=$files}|ConvertTo-Json -Depth 5|Set-Content -LiteralPath (Join-Path $output 'release-manifest.json') -Encoding UTF8
     $files|ForEach-Object {$_.sha256+'  '+$_.name}|Set-Content -LiteralPath (Join-Path $output 'SHA256SUMS.txt') -Encoding ASCII
     & $python.Source (Join-Path $root 'scripts/verify-release.py') $output
     if($LASTEXITCODE){Remove-Item -LiteralPath (Join-Path $output 'release-manifest.json');throw 'Release archive verification failed.'}

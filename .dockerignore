@@ -23,3 +23,13 @@ artifacts
 *.key
 *.pem
 **/signing-metadata.json
+**/.env
+**/.env.*
+**/*.db
+**/*.sqlite
+**/*.sqlite3
+**/settings.ai.json
+**/usage.jsonl
+**/ui-language.json
+**/library.json
+!assets/sfx/library.json

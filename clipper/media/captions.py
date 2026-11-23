@@ -77,7 +77,18 @@ def timed_cues(phrase: list[Word], tokens: list[str] | None, highlights: set[str
     corrected spellings; they are used only when they map one-to-one onto the spoken words."""
     texts = tokens if tokens and len(tokens) == len(phrase) else [w.w for w in phrase]
     cues = []
+    # Do not leave a word highlighted across a silence inside a short group.
+    groups = []
     for group in chunk(texts):
+        current = []
+        for i in group:
+            if current and phrase[i].start - phrase[current[-1]].end > 0.25:
+                groups.append(current)
+                current = []
+            current.append(i)
+        if current:
+            groups.append(current)
+    for group in groups:
         words = [CaptionWord(w=texts[i], start=phrase[i].start, end=phrase[i].end, hl=norm(texts[i]) in highlights) for i in group]
         cues.append(Cue(start=words[0].start, end=words[-1].end, words=words))
     return cues

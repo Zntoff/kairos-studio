@@ -26,6 +26,12 @@ public static class CreativeEdits
          "subject_region":{"type":"object","description":"Normalized rectangle containing ALL essential action/UI, not just a point. Keep the whole source (fit) if several windows or people matter.",
           "properties":{"x":{"type":"number","minimum":0,"maximum":1},"y":{"type":"number","minimum":0,"maximum":1},"w":{"type":"number","minimum":0.04,"maximum":1},"h":{"type":"number","minimum":0.04,"maximum":1}},"required":["x","y","w","h"]}},"required":["mode","reason"]}
         """);
+        p["framing"]!["properties"]!["subject_track"] = new JsonObject {
+            ["type"] = "array", ["maxItems"] = 32, ["items"] = new JsonObject {
+                ["type"] = "object", ["properties"] = new JsonObject {
+                    ["frame_index"] = new JsonObject { ["type"] = "integer", ["minimum"] = 0 },
+                    ["region"] = J.Clone(p["framing"]!["properties"]!["subject_region"]!) },
+                ["required"] = new JsonArray("frame_index", "region") } };
         p["audio"]!["properties"]!["sfx"]!["items"]!["properties"]!["gain"] = JsonNode.Parse("""{"type":"number","minimum":0.15,"maximum":1.2}""");
         p["texts"] = JsonNode.Parse("""
         {"type":"array","maxItems":3,"items":{"type":"object","properties":{
@@ -58,6 +64,13 @@ public static class CreativeEdits
             if (framing is not JsonObject) return "framing must be an object with mode, reason and an optional subject_region.";
             if (J.S(framing["mode"]) is not ("fit" or "subject")) return "Choose framing.mode = fit or subject.";
             if (framing["subject_region"] != null && RegionError(framing["subject_region"]) is { } regionError) return "framing.subject_region: " + regionError;
+            var seen = new HashSet<int>();
+            foreach (var point in J.Items(framing["subject_track"]))
+            {
+                double index = J.D(point["frame_index"], -1);
+                if (index < 0 || index != Math.Truncate(index) || index >= input.Frames.Count || !seen.Add((int)index) || RegionError(point["region"]) != null)
+                    return "subject_track needs unique real frame indices and valid source regions.";
+            }
             if (J.S(framing["mode"]) == "subject")
             {
                 if (RegionError(framing["subject_region"]) is { } error) return "framing.subject_region: " + error;

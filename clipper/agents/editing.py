@@ -228,12 +228,12 @@ class EditingAgent(Subagent):
             "layout": "gameplay_blur_bg" if inp.source.width > inp.source.height else "center_crop",
             "hook": {"text": loc(hook), "duration": 2.0},
             "commentary": {"mode": "onscreen", "notes": [
-                {"at_word": n1, "duration": 3.5, "text": loc("[offline] Your own commentary on this moment goes here")},
-                {"at_word": n2, "duration": 3.5, "text": loc("[offline] A second note: context the original video doesn't give")}]},
+                {"at_word": n1, "duration": 3.5, "text": loc("[offline] Aquí va el comentario original que escribe Claude sobre este momento")},
+                {"at_word": n2, "duration": 3.5, "text": loc("[offline] Segunda nota de análisis: contexto que el video original no da")}]},
             "captions": {"style": ["bold", "bounce", "clean"][sum(map(ord, inp.clip_id)) % 3], "highlight_keywords": []},
             "audio": {"sfx": sfx, "music_id": None, "duck_music": True},
             "effects": [{"at_word": a + span // 2, "type": "punch_in", "duration": 0.8}],
-            "risk": {"spoiler": False, "notes": "Not reviewed: offline mode."},
+            "risk": {"spoiler": False, "notes": "Sin revisar: modo offline."},
         }
 
 

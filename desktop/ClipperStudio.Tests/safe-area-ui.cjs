@@ -34,3 +34,12 @@ for(const animation of ['none','fade','pop','zoom','slide_up','slide_down','slid
     count++;
   }
 console.log(`Passed ${count} UI safe-area placement cases, including animation peaks and rotations.`);
+for(const canvasHeight of [463,608,1080,1920]) {
+  const margins={left:100,right:100,top:Math.floor(canvasHeight*.125),bottom:Math.floor(canvasHeight*.125),canvas_width:1080,canvas_height:canvasHeight};
+  for(const animation of ['none','zoom','slide_up','slide_down']) for(const y of [0,1]) {
+    const placement=safeLayout.text({size:110,x:.5,y,anim_in:animation,text:{en:'SHARED TOOLS'},stroke_w:6},'en',margins,1,measure,wrap);
+    assert(placement.y-placement.hh-placement.tm>=margins.top);
+    assert(placement.y+placement.hh+placement.bm<=canvasHeight-margins.bottom);
+  }
+}
+console.log('Passed 32 composition safe-area cases across cinematic, landscape, square and portrait canvases.');

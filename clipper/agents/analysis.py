@@ -124,5 +124,5 @@ class AnalysisAgent(Subagent):
                 break
         return {"candidates": [
             {"start_segment": i, "end_segment": j, "score": round(score, 1), "category": "heuristic",
-             "reason": "Offline heuristic: audio energy, cuts and excitement cues.", "hook_idea": ""}
+             "reason": "Heurística offline: energía de audio, cortes y marcas de emoción.", "hook_idea": ""}
             for score, i, j in picked]}

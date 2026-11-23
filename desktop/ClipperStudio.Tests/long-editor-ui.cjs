@@ -1,0 +1,46 @@
+const assert=require('node:assert/strict');
+const {chromium}=require(process.env.PLAYWRIGHT_MODULE || 'playwright');
+(async()=>{
+ const browser=await chromium.launch({channel:'msedge',headless:true});
+ try {
+  const page=await browser.newPage({viewport:{width:1536,height:1000}}),errors=[];
+  page.on('pageerror',e=>errors.push(e.message));
+  const base=process.env.CLIPPER_QA_URL,id=process.env.CLIPPER_QA_CLIP;
+  await require('./session.cjs')(page,base);
+  await page.goto(base+'/#/editor/'+id);
+  await page.locator('#edTabs [data-tab=resources]').click();
+  await page.locator('#edMode').selectOption('long');
+  await page.locator('[data-resource-add]').first().waitFor();
+  const count=await page.locator('#tlMedia .it').count();
+  await page.locator('[data-resource-add]').first().click();
+  assert.equal(await page.locator('#tlMedia .it').count(),count+1);
+  await page.locator('#tlMedia .it').last().click();
+  await page.evaluate(()=>document.activeElement.blur());
+  await page.keyboard.press('Control+c');await page.keyboard.press('Control+v');
+  assert.equal(await page.locator('#tlMedia .it').count(),count+2,'Shorts and compositions share clipboard behavior');
+  await page.keyboard.press('Control+z');assert.equal(await page.locator('#tlMedia .it').count(),count+1);
+  await page.locator('#tlMedia .it').last().click();
+  await page.locator('#edInsp [data-a=del]').click();
+  assert.equal(await page.locator('#tlMedia .it').count(),count);
+  await page.locator('#edTabs [data-tab=format]').click();
+  if(await page.locator('[data-safe-margin=bottom]').isEnabled())await page.locator('[data-safe-action=lock]').click();
+  assert.ok(await page.locator('[data-safe-margin=bottom]').isDisabled());
+  await page.locator('[data-safe-action=lock]').click();
+  await page.locator('[data-safe-margin=bottom]').fill('200');
+  await page.locator('[data-safe-margin=bottom]').dispatchEvent('input');
+  await page.locator('#edSafeName').fill('Mi zona');
+  await page.locator('[data-safe-action=save]').click();
+  assert.ok(await page.locator('#edSafeTemplate').textContent().then(x=>x.includes('Mi zona')));
+  await page.waitForResponse(r=>r.url().endsWith('/draft')&&r.request().method()==='PUT');
+  await page.reload();await page.locator('#edTabs [data-tab=format]').click();
+  assert.equal(await page.locator('[data-safe-margin=bottom]').inputValue(),'200');
+  assert.ok(await page.locator('[data-safe-margin=bottom]').isEnabled());
+  await page.locator('[data-safe-margin=bottom]').fill('300');
+  await page.locator('[data-safe-margin=bottom]').dispatchEvent('input');
+  await page.locator('#edSafeTemplate').selectOption('0');
+  assert.equal(await page.locator('[data-safe-margin=bottom]').inputValue(),'200');
+  await page.screenshot({path:process.env.TEMP+'/kairos-long-editor.png',fullPage:true});
+  assert.deepEqual(errors,[]);
+  console.log('Passed editor browser checks: resources, delete, safe lock, margins, template and reload.');
+ } finally {await browser.close();}
+})().catch(e=>{console.error(e);process.exitCode=1});
